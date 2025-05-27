@@ -3,10 +3,11 @@ import FormField from './FormField';
 
 export default function FormCanvas() {
   const [fields, setFields] = useState([]);
-  
+  const [draggedItem, setDraggedItem] = useState(null);
+  const [dragOverItem, setDragOverItem] = useState(null);
+
   const onDragOver = (event) => {
     event.preventDefault();
-    event.dataTransfer.dropEffect = 'copy';
   };
   
   const onDrop = (event) => {
@@ -26,6 +27,30 @@ export default function FormCanvas() {
     }
   };
 
+  const handleDragStart = (index) => {
+    setDraggedItem(index);
+  };
+
+  const handleDragEnter = (index) => {
+    setDragOverItem(index);
+  };
+
+  const handleDragEnd = () => {
+    if (draggedItem !== null && dragOverItem !== null && draggedItem !== dragOverItem) {
+      const fieldsCopy = [...fields];
+      const draggedItemContent = fieldsCopy[draggedItem];
+      
+      fieldsCopy.splice(draggedItem, 1);
+
+      fieldsCopy.splice(dragOverItem, 0, draggedItemContent);
+
+      setFields(fieldsCopy);
+    }
+
+    setDraggedItem(null);
+    setDragOverItem(null);
+  };
+
   return (
     <div 
       className="flex-1 p-6 bg-white border border-dashed border-gray-300 min-h-screen"
@@ -40,15 +65,28 @@ export default function FormCanvas() {
         <div className="space-y-6 max-w-2xl mx-auto">
           <h2 className="text-xl font-semibold pb-2 border-b">Form Preview</h2>
           <form className="space-y-4">
-            {fields.map((field) => (
-              <div key={field.id} className="p-4 border rounded-md bg-gray-50 hover:shadow-md transition-shadow">
+            {fields.map((field, index) => (
+              <div 
+                key={field.id} 
+                className={`p-4 border rounded-md bg-gray-50 hover:shadow-md transition-shadow cursor-move
+                  ${draggedItem === index ? 'opacity-50 border-dashed' : ''}
+                  ${dragOverItem === index ? 'border-blue-500 bg-blue-50' : ''}`}
+                draggable="true"
+                onDragStart={() => handleDragStart(index)}
+                onDragEnter={() => handleDragEnter(index)}
+                onDragOver={(e) => e.preventDefault()}
+                onDragEnd={handleDragEnd}
+              >
+                <div className="flex items-center mb-2 text-gray-500">
+                  <span className="mr-2">☰</span>
+                  <span className="text-sm">Drag to reorder</span>
+                </div>
                 <FormField field={field} />
                 <div className="flex justify-end mt-2 space-x-2">
                   <button 
                     type="button" 
                     className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
                     onClick={() => {
-                      // This would open field settings in a real implementation
                       alert(`Edit settings for ${field.label}`);
                     }}
                   >
@@ -58,7 +96,7 @@ export default function FormCanvas() {
                     type="button" 
                     className="px-2 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200"
                     onClick={() => {
-                      setFields(fields.filter(f => f.id !== field.id));
+                      setFields(fields.filter((_, i) => i !== index));
                     }}
                   >
                     Remove
