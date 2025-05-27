@@ -1,12 +1,48 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from '@remix-run/react';
 import FormField from './FormField';
 import FieldConfig from './FieldConfig';
 
 export function useFormCanvas() {
   const [fields, setFields] = useState([]);
+  const [formName, setFormName] = useState('');
+  const [searchParams] = useSearchParams();
+  const formId = searchParams.get('formId');
+  
+  useEffect(() => {
+    if (formId) {
+      try {
+        const savedForms = localStorage.getItem('savedForms');
+        if (savedForms) {
+          const forms = JSON.parse(savedForms);
+          const targetForm = forms.find(form => form.id === formId);
+          
+          if (targetForm) {
+            setFields(targetForm.fields);
+            setFormName(targetForm.name);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading form:', error);
+      }
+    } else {
+      try {
+        const savedForm = localStorage.getItem('savedForm');
+        if (savedForm && !fields.length) {
+          const { fields: savedFields } = JSON.parse(savedForm);
+          if (Array.isArray(savedFields)) {
+            setFields(savedFields);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading saved form:', error);
+      }
+    }
+  }, [formId]);
   
   const resetForm = () => {
     setFields([]);
+    setFormName('Untitled Form');
   };
 
   const saveForm = (formData) => {
@@ -16,8 +52,11 @@ export function useFormCanvas() {
   return {
     fields,
     setFields,
+    formName,
+    setFormName,
     resetForm,
-    saveForm
+    saveForm,
+    isEditing: !!formId
   };
 }
 
@@ -25,20 +64,6 @@ export default function FormCanvas({ fields, setFields }) {
   const [draggedItem, setDraggedItem] = useState(null);
   const [dragOverItem, setDragOverItem] = useState(null);
   const [editingField, setEditingField] = useState(null);
-
-  useEffect(() => {
-    const savedForm = localStorage.getItem('savedForm');
-    if (savedForm && !fields.length) {
-      try {
-        const { fields: savedFields } = JSON.parse(savedForm);
-        if (Array.isArray(savedFields)) {
-          setFields(savedFields);
-        }
-      } catch (error) {
-        console.error('Error loading saved form:', error);
-      }
-    }
-  }, []);
 
   const onDragOver = (event) => {
     event.preventDefault();

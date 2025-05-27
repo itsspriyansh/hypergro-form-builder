@@ -1,37 +1,72 @@
-import React from 'react';
+import React from "react";
 
 const FIELD_TYPES = [
-  { id: 'text', label: 'Text Field', icon: '📝' },
-  { id: 'textarea', label: 'Text Area', icon: '📄' },
-  { id: 'dropdown', label: 'Dropdown', icon: '▼' },
-  { id: 'checkbox', label: 'Checkbox', icon: '☑️' },
-  { id: 'radio', label: 'Radio Button', icon: '⚪' },
-  { id: 'date', label: 'Date Picker', icon: '📅' },
-  { id: 'file', label: 'File Upload', icon: '📎' }
+  { id: "text", label: "Text Field", icon: "📝" },
+  { id: "textarea", label: "Text Area", icon: "📄" },
+  { id: "dropdown", label: "Dropdown", icon: "▼" },
+  { id: "checkbox", label: "Checkbox", icon: "☑️" },
+  { id: "radio", label: "Radio Button", icon: "⚪" },
+  { id: "date", label: "Date Picker", icon: "📅" },
+  { id: "file", label: "File Upload", icon: "📎" },
 ];
 
-export default function Sidebar({ fields, onReset, onSave }) {
+export default function Sidebar({
+  fields,
+  formName,
+  setFormName,
+  onReset,
+  onSave,
+  isEditing,
+}) {
   const onDragStart = (event, fieldType) => {
-    event.dataTransfer.setData('fieldType', fieldType);
-    event.dataTransfer.effectAllowed = 'copy';
+    event.dataTransfer.setData("fieldType", fieldType);
+    event.dataTransfer.effectAllowed = "copy";
   };
 
   const handleSave = () => {
+    if (fields.length === 0) {
+      alert("Please add at least one field to your form before saving.");
+      return;
+    }
+
+    const formId = isEditing ? fields[0]?.formId : `form-${Date.now()}`;
+    const currentDate = new Date().toISOString().split("T")[0]; // Format: YYYY-MM-DD
+
     const formData = {
-      id: `form-${Date.now()}`,
+      id: formId,
+      name: formName,
+      createdAt: currentDate,
       fields: fields,
-      updatedAt: new Date().toISOString()
+      responses: 0,
+      updatedAt: new Date().toISOString(),
     };
-    
-    // Save to localStorage
-    localStorage.setItem('savedForm', JSON.stringify(formData));
-    alert('Form saved successfully!');
-    
+
+    let savedForms = [];
+    try {
+      const existingForms = localStorage.getItem("savedForms");
+      if (existingForms) {
+        savedForms = JSON.parse(existingForms);
+      }
+    } catch (error) {
+      console.error("Error loading saved forms:", error);
+    }
+
+    if (isEditing) {
+      savedForms = savedForms.map((form) =>
+        form.id === formId ? formData : form
+      );
+    } else {
+      savedForms = [formData, ...savedForms];
+    }
+
+    localStorage.setItem("savedForms", JSON.stringify(savedForms));
+    alert("Form saved successfully!");
+
     if (onSave) onSave(formData);
   };
 
   const handleReset = () => {
-    if (window.confirm('Are you sure you want to clear all form fields?')) {
+    if (window.confirm("Are you sure you want to clear all form fields?")) {
       onReset();
     }
   };
@@ -39,6 +74,18 @@ export default function Sidebar({ fields, onReset, onSave }) {
   return (
     <div className="w-64 bg-gray-100 p-4 border-r border-gray-200 h-full overflow-auto">
       <h2 className="text-lg font-semibold mb-4">Form Elements</h2>
+
+      <div className="mb-4">
+        <label className="block text-sm font-medium mb-1">Form Name</label>
+        <input
+          type="text"
+          value={formName}
+          onChange={(e) => setFormName(e.target.value)}
+          className="w-full px-3 py-2 border rounded-md"
+          placeholder="Enter form name"
+        />
+      </div>
+
       <div className="space-y-2">
         {FIELD_TYPES.map((field) => (
           <div
@@ -52,16 +99,16 @@ export default function Sidebar({ fields, onReset, onSave }) {
           </div>
         ))}
       </div>
-      
+
       <div className="mt-8 space-y-3">
         <button
           onClick={handleSave}
           className="w-full bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded flex items-center justify-center"
         >
           <span className="mr-2">💾</span>
-          Save Form
+          {isEditing ? "Update Form" : "Save Form"}
         </button>
-        
+
         <button
           onClick={handleReset}
           className="w-full bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded flex items-center justify-center"
