@@ -196,10 +196,13 @@ export default function FormCanvas({
         placeholder: `Enter ${fieldType}...`,
         required: false,
         helpText: '',
-        options: fieldType === 'dropdown' || fieldType === 'radio' 
-          ? ['Option 1', 'Option 2', 'Option 3'] 
-          : undefined
+        minLength: '',
+        maxLength: ''
       };
+
+      if (fieldType === 'dropdown' || fieldType === 'radio') {
+        newField.options = ['Option 1', 'Option 2', 'Option 3'];
+      }
       
       setFields([...fields, newField]);
     }
