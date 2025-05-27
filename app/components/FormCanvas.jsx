@@ -1,10 +1,42 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import FormField from './FormField';
 
-export default function FormCanvas() {
+export function useFormCanvas() {
   const [fields, setFields] = useState([]);
+  
+  const resetForm = () => {
+    setFields([]);
+  };
+
+  const saveForm = (formData) => {
+    console.log('Form saved:', formData);
+  };
+  
+  return {
+    fields,
+    setFields,
+    resetForm,
+    saveForm
+  };
+}
+
+export default function FormCanvas({ fields, setFields }) {
   const [draggedItem, setDraggedItem] = useState(null);
   const [dragOverItem, setDragOverItem] = useState(null);
+
+  useEffect(() => {
+    const savedForm = localStorage.getItem('savedForm');
+    if (savedForm && !fields.length) {
+      try {
+        const { fields: savedFields } = JSON.parse(savedForm);
+        if (Array.isArray(savedFields)) {
+          setFields(savedFields);
+        }
+      } catch (error) {
+        console.error('Error loading saved form:', error);
+      }
+    }
+  }, []);
 
   const onDragOver = (event) => {
     event.preventDefault();

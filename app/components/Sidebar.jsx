@@ -10,10 +10,30 @@ const FIELD_TYPES = [
   { id: 'file', label: 'File Upload', icon: '📎' }
 ];
 
-export default function Sidebar() {
+export default function Sidebar({ fields, onReset, onSave }) {
   const onDragStart = (event, fieldType) => {
     event.dataTransfer.setData('fieldType', fieldType);
     event.dataTransfer.effectAllowed = 'copy';
+  };
+
+  const handleSave = () => {
+    const formData = {
+      id: `form-${Date.now()}`,
+      fields: fields,
+      updatedAt: new Date().toISOString()
+    };
+    
+    // Save to localStorage
+    localStorage.setItem('savedForm', JSON.stringify(formData));
+    alert('Form saved successfully!');
+    
+    if (onSave) onSave(formData);
+  };
+
+  const handleReset = () => {
+    if (window.confirm('Are you sure you want to clear all form fields?')) {
+      onReset();
+    }
   };
 
   return (
@@ -31,6 +51,24 @@ export default function Sidebar() {
             <span>{field.label}</span>
           </div>
         ))}
+      </div>
+      
+      <div className="mt-8 space-y-3">
+        <button
+          onClick={handleSave}
+          className="w-full bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded flex items-center justify-center"
+        >
+          <span className="mr-2">💾</span>
+          Save Form
+        </button>
+        
+        <button
+          onClick={handleReset}
+          className="w-full bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded flex items-center justify-center"
+        >
+          <span className="mr-2">🗑️</span>
+          Reset Form
+        </button>
       </div>
     </div>
   );
