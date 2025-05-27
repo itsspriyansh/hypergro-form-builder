@@ -1,9 +1,20 @@
-import React, { useState } from 'react';
+import React from 'react';
 import Sidebar from '../components/Sidebar';
 import FormCanvas, { useFormCanvas } from '../components/FormCanvas';
 
 export default function FormBuilder() {
-  const { fields, setFields, formName, setFormName, resetForm, saveForm, isEditing } = useFormCanvas();
+  const { 
+    fields, 
+    setFields, 
+    formName, 
+    setFormName, 
+    resetForm, 
+    saveForm, 
+    isEditing,
+    showDraftNotice,
+    lastEdited,
+    dismissDraftNotice
+  } = useFormCanvas();
   
   return (
     <div className="flex h-full">
@@ -18,6 +29,9 @@ export default function FormBuilder() {
       <FormCanvas 
         fields={fields}
         setFields={setFields}
+        showDraftNotice={showDraftNotice}
+        lastEdited={lastEdited}
+        dismissDraftNotice={dismissDraftNotice}
       />
     </div>
   );

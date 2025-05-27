@@ -1,4 +1,8 @@
 import React from "react";
+import { useSearchParams } from "@remix-run/react";
+
+const DRAFT_FORM_KEY = 'draftForm';
+const SAVED_FORMS_KEY = 'savedForms';
 
 const FIELD_TYPES = [
   { id: "text", label: "Text Field", icon: "📝" },
@@ -18,6 +22,9 @@ export default function Sidebar({
   onSave,
   isEditing,
 }) {
+  const [searchParams] = useSearchParams();
+  const formId = searchParams.get('formId');
+
   const onDragStart = (event, fieldType) => {
     event.dataTransfer.setData("fieldType", fieldType);
     event.dataTransfer.effectAllowed = "copy";
@@ -29,12 +36,12 @@ export default function Sidebar({
       return;
     }
 
-    const formId = isEditing ? fields[0]?.formId : `form-${Date.now()}`;
+    const formId = searchParams.get('formId') || `form-${Date.now()}`;
     const currentDate = new Date().toISOString().split("T")[0]; // Format: YYYY-MM-DD
 
     const formData = {
       id: formId,
-      name: formName,
+      name: formName || 'Untitled Form',
       createdAt: currentDate,
       fields: fields,
       responses: 0,
@@ -43,7 +50,7 @@ export default function Sidebar({
 
     let savedForms = [];
     try {
-      const existingForms = localStorage.getItem("savedForms");
+      const existingForms = localStorage.getItem(SAVED_FORMS_KEY);
       if (existingForms) {
         savedForms = JSON.parse(existingForms);
       }
@@ -59,7 +66,10 @@ export default function Sidebar({
       savedForms = [formData, ...savedForms];
     }
 
-    localStorage.setItem("savedForms", JSON.stringify(savedForms));
+    localStorage.setItem(SAVED_FORMS_KEY, JSON.stringify(savedForms));
+
+    localStorage.removeItem(DRAFT_FORM_KEY);
+    
     alert("Form saved successfully!");
 
     if (onSave) onSave(formData);
@@ -74,7 +84,7 @@ export default function Sidebar({
   return (
     <div className="w-64 bg-gray-100 p-4 border-r border-gray-200 h-full overflow-auto">
       <h2 className="text-lg font-semibold mb-4">Form Elements</h2>
-
+      
       <div className="mb-4">
         <label className="block text-sm font-medium mb-1">Form Name</label>
         <input
@@ -85,7 +95,7 @@ export default function Sidebar({
           placeholder="Enter form name"
         />
       </div>
-
+      
       <div className="space-y-2">
         {FIELD_TYPES.map((field) => (
           <div
@@ -99,7 +109,7 @@ export default function Sidebar({
           </div>
         ))}
       </div>
-
+      
       <div className="mt-8 space-y-3">
         <button
           onClick={handleSave}
@@ -108,7 +118,7 @@ export default function Sidebar({
           <span className="mr-2">💾</span>
           {isEditing ? "Update Form" : "Save Form"}
         </button>
-
+        
         <button
           onClick={handleReset}
           className="w-full bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded flex items-center justify-center"

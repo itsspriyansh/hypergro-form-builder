@@ -3,50 +3,133 @@ import { useSearchParams } from '@remix-run/react';
 import FormField from './FormField';
 import FieldConfig from './FieldConfig';
 
+const DRAFT_FORM_KEY = 'draftForm';
+const SAVED_FORMS_KEY = 'savedForms';
+
+function DraftNotification({ lastEdited, onDismiss }) {
+  const formatTimeAgo = (dateString) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.round(diffMs / 60000);
+    
+    if (diffMins < 1) return 'just now';
+    if (diffMins < 60) return `${diffMins} minute${diffMins === 1 ? '' : 's'} ago`;
+    
+    const diffHours = Math.round(diffMins / 60);
+    if (diffHours < 24) return `${diffHours} hour${diffHours === 1 ? '' : 's'} ago`;
+    
+    const diffDays = Math.round(diffHours / 24);
+    return `${diffDays} day${diffDays === 1 ? '' : 's'} ago`;
+  };
+
+  return (
+    <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-4 rounded shadow-sm">
+      <div className="flex justify-between items-center">
+        <div>
+          <p className="font-medium">Draft form restored</p>
+          <p className="text-sm text-gray-600">
+            Last edited {formatTimeAgo(lastEdited)}
+          </p>
+        </div>
+        <button 
+          onClick={onDismiss}
+          className="text-gray-500 hover:text-gray-700"
+        >
+          ✕
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export function useFormCanvas() {
   const [fields, setFields] = useState([]);
   const [formName, setFormName] = useState('');
   const [searchParams] = useSearchParams();
   const formId = searchParams.get('formId');
-  
+  const [showDraftNotice, setShowDraftNotice] = useState(false);
+  const [lastEdited, setLastEdited] = useState(null);
+
   useEffect(() => {
     if (formId) {
       try {
-        const savedForms = localStorage.getItem('savedForms');
+        const savedForms = localStorage.getItem(SAVED_FORMS_KEY);
         if (savedForms) {
           const forms = JSON.parse(savedForms);
           const targetForm = forms.find(form => form.id === formId);
           
           if (targetForm) {
             setFields(targetForm.fields);
-            setFormName(targetForm.name);
+            setFormName(targetForm.name || 'Untitled Form');
+
+            saveDraftForm(targetForm.name || 'Untitled Form', targetForm.fields, formId);
+            return;
           }
         }
       } catch (error) {
         console.error('Error loading form:', error);
       }
-    } else {
-      try {
-        const savedForm = localStorage.getItem('savedForm');
-        if (savedForm && !fields.length) {
-          const { fields: savedFields } = JSON.parse(savedForm);
-          if (Array.isArray(savedFields)) {
-            setFields(savedFields);
-          }
+    }
+
+    try {
+      const draftForm = localStorage.getItem(DRAFT_FORM_KEY);
+      if (draftForm) {
+        const { name, fields: draftFields, formId: draftId, lastEdited } = JSON.parse(draftForm);
+        setFields(draftFields || []);
+        setFormName(name || 'Untitled Form');
+
+        if (lastEdited) {
+          setLastEdited(lastEdited);
+          setShowDraftNotice(true);
         }
-      } catch (error) {
-        console.error('Error loading saved form:', error);
+
+        if (!formId && draftId && window.location.pathname === '/builder') {
+          window.history.replaceState(null, '', `/builder?formId=${draftId}`);
+        }
+      } else if (!fields.length) {
+        setFormName('Untitled Form');
       }
+    } catch (error) {
+      console.error('Error loading draft form:', error);
     }
   }, [formId]);
+
+  useEffect(() => {
+    if (fields.length > 0 || (formName && formName !== 'Untitled Form')) {
+      saveDraftForm(formName, fields, formId);
+    }
+  }, [fields, formName, formId]);
+  
+  const saveDraftForm = (name, formFields, id) => {
+    try {
+      const draftData = {
+        name: name,
+        fields: formFields,
+        formId: id,
+        lastEdited: new Date().toISOString()
+      };
+      localStorage.setItem(DRAFT_FORM_KEY, JSON.stringify(draftData));
+    } catch (error) {
+      console.error('Error saving draft form:', error);
+    }
+  };
   
   const resetForm = () => {
     setFields([]);
     setFormName('Untitled Form');
+    localStorage.removeItem(DRAFT_FORM_KEY);
+    setShowDraftNotice(false);
   };
 
   const saveForm = (formData) => {
     console.log('Form saved:', formData);
+    localStorage.removeItem(DRAFT_FORM_KEY);
+    setShowDraftNotice(false);
+  };
+  
+  const dismissDraftNotice = () => {
+    setShowDraftNotice(false);
   };
   
   return {
@@ -56,14 +139,46 @@ export function useFormCanvas() {
     setFormName,
     resetForm,
     saveForm,
-    isEditing: !!formId
+    isEditing: !!formId,
+    showDraftNotice,
+    lastEdited,
+    dismissDraftNotice
   };
 }
 
-export default function FormCanvas({ fields, setFields }) {
+export default function FormCanvas({ 
+  fields, 
+  setFields,
+  showDraftNotice: externalShowDraftNotice,
+  lastEdited: externalLastEdited,
+  dismissDraftNotice: externalDismissNotice
+}) {
   const [draggedItem, setDraggedItem] = useState(null);
   const [dragOverItem, setDragOverItem] = useState(null);
   const [editingField, setEditingField] = useState(null);
+  const [searchParams] = useSearchParams();
+  const [showDraftNotice, setShowDraftNotice] = useState(false);
+  const [lastEdited, setLastEdited] = useState(null);
+
+  const shouldShowNotice = externalShowDraftNotice !== undefined ? externalShowDraftNotice : showDraftNotice;
+  const noticeLastEdited = externalLastEdited !== undefined ? externalLastEdited : lastEdited;
+
+  useEffect(() => {
+    if (externalShowDraftNotice !== undefined) return;
+    
+    try {
+      const draftForm = localStorage.getItem(DRAFT_FORM_KEY);
+      if (draftForm) {
+        const { lastEdited } = JSON.parse(draftForm);
+        if (lastEdited) {
+          setLastEdited(lastEdited);
+          setShowDraftNotice(true);
+        }
+      }
+    } catch (error) {
+      console.error('Error checking draft form:', error);
+    }
+  }, [externalShowDraftNotice]);
 
   const onDragOver = (event) => {
     event.preventDefault();
@@ -128,12 +243,27 @@ export default function FormCanvas({ fields, setFields }) {
     setEditingField(null);
   };
 
+  const dismissDraftNotice = () => {
+    if (externalDismissNotice) {
+      externalDismissNotice();
+    } else {
+      setShowDraftNotice(false);
+    }
+  };
+
   return (
     <div 
       className="flex-1 p-6 bg-white border border-dashed border-gray-300 min-h-screen"
       onDragOver={onDragOver}
       onDrop={onDrop}
     >
+      {shouldShowNotice && noticeLastEdited && (
+        <DraftNotification 
+          lastEdited={noticeLastEdited} 
+          onDismiss={dismissDraftNotice} 
+        />
+      )}
+      
       {fields.length === 0 ? (
         <div className="flex items-center justify-center h-full">
           <p className="text-gray-400 text-lg">Drag and drop form elements here</p>
