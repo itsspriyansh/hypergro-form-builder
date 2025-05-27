@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import FormField from './FormField';
+import FieldConfig from './FieldConfig';
 
 export function useFormCanvas() {
   const [fields, setFields] = useState([]);
@@ -23,6 +24,7 @@ export function useFormCanvas() {
 export default function FormCanvas({ fields, setFields }) {
   const [draggedItem, setDraggedItem] = useState(null);
   const [dragOverItem, setDragOverItem] = useState(null);
+  const [editingField, setEditingField] = useState(null);
 
   useEffect(() => {
     const savedForm = localStorage.getItem('savedForm');
@@ -52,7 +54,11 @@ export default function FormCanvas({ fields, setFields }) {
         type: fieldType,
         label: `New ${fieldType} field`,
         placeholder: `Enter ${fieldType}...`,
-        required: false
+        required: false,
+        helpText: '',
+        options: fieldType === 'dropdown' || fieldType === 'radio' 
+          ? ['Option 1', 'Option 2', 'Option 3'] 
+          : undefined
       };
       
       setFields([...fields, newField]);
@@ -73,7 +79,6 @@ export default function FormCanvas({ fields, setFields }) {
       const draggedItemContent = fieldsCopy[draggedItem];
       
       fieldsCopy.splice(draggedItem, 1);
-
       fieldsCopy.splice(dragOverItem, 0, draggedItemContent);
 
       setFields(fieldsCopy);
@@ -81,6 +86,21 @@ export default function FormCanvas({ fields, setFields }) {
 
     setDraggedItem(null);
     setDragOverItem(null);
+  };
+
+  const handleEditField = (index) => {
+    setEditingField(index);
+  };
+
+  const handleSaveFieldConfig = (updatedField) => {
+    const newFields = [...fields];
+    newFields[editingField] = updatedField;
+    setFields(newFields);
+    setEditingField(null);
+  };
+
+  const handleCancelFieldConfig = () => {
+    setEditingField(null);
   };
 
   return (
@@ -118,9 +138,7 @@ export default function FormCanvas({ fields, setFields }) {
                   <button 
                     type="button" 
                     className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
-                    onClick={() => {
-                      alert(`Edit settings for ${field.label}`);
-                    }}
+                    onClick={() => handleEditField(index)}
                   >
                     Edit
                   </button>
@@ -138,6 +156,14 @@ export default function FormCanvas({ fields, setFields }) {
             ))}
           </form>
         </div>
+      )}
+
+      {editingField !== null && (
+        <FieldConfig 
+          field={fields[editingField]} 
+          onSave={handleSaveFieldConfig}
+          onCancel={handleCancelFieldConfig}
+        />
       )}
     </div>
   );

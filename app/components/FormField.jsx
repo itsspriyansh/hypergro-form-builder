@@ -1,7 +1,7 @@
 import React from 'react';
 
 export default function FormField({ field }) {
-  const { type, label, placeholder, required } = field;
+  const { type, label, placeholder, required, helpText, options } = field;
 
   const renderField = () => {
     switch (type) {
@@ -30,9 +30,9 @@ export default function FormField({ field }) {
             required={required}
           >
             <option value="">Select an option</option>
-            <option value="option1">Option 1</option>
-            <option value="option2">Option 2</option>
-            <option value="option3">Option 3</option>
+            {(options || ['Option 1', 'Option 2', 'Option 3']).map((option, index) => (
+              <option key={index} value={option}>{option}</option>
+            ))}
           </select>
         );
       case 'checkbox':
@@ -49,7 +49,7 @@ export default function FormField({ field }) {
       case 'radio':
         return (
           <div className="space-y-2">
-            {['Option 1', 'Option 2', 'Option 3'].map((option, index) => (
+            {(options || ['Option 1', 'Option 2', 'Option 3']).map((option, index) => (
               <div key={index} className="flex items-center">
                 <input
                   type="radio"
@@ -90,6 +90,9 @@ export default function FormField({ field }) {
         {required && <span className="text-red-500 ml-1">*</span>}
       </label>
       {renderField()}
+      {helpText && (
+        <p className="mt-1 text-sm text-gray-500">{helpText}</p>
+      )}
     </div>
   );
 }
