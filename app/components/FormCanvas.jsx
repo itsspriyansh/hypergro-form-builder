@@ -256,65 +256,69 @@ export default function FormCanvas({
 
   return (
     <div 
-      className="flex-1 p-6 bg-white border border-dashed border-gray-300 min-h-screen"
+      className="flex-1 flex flex-col overflow-hidden"
       onDragOver={onDragOver}
       onDrop={onDrop}
     >
       {shouldShowNotice && noticeLastEdited && (
-        <DraftNotification 
-          lastEdited={noticeLastEdited} 
-          onDismiss={dismissDraftNotice} 
-        />
-      )}
-      
-      {fields.length === 0 ? (
-        <div className="flex items-center justify-center h-full">
-          <p className="text-gray-400 text-lg">Drag and drop form elements here</p>
-        </div>
-      ) : (
-        <div className="space-y-6 max-w-2xl mx-auto">
-          <h2 className="text-xl font-semibold pb-2 border-b">Form Preview</h2>
-          <form className="space-y-4">
-            {fields.map((field, index) => (
-              <div 
-                key={field.id} 
-                className={`p-4 border rounded-md bg-gray-50 hover:shadow-md transition-shadow cursor-move
-                  ${draggedItem === index ? 'opacity-50 border-dashed' : ''}
-                  ${dragOverItem === index ? 'border-blue-500 bg-blue-50' : ''}`}
-                draggable="true"
-                onDragStart={() => handleDragStart(index)}
-                onDragEnter={() => handleDragEnter(index)}
-                onDragOver={(e) => e.preventDefault()}
-                onDragEnd={handleDragEnd}
-              >
-                <div className="flex items-center mb-2 text-gray-500">
-                  <span className="mr-2">☰</span>
-                  <span className="text-sm">Drag to reorder</span>
-                </div>
-                <FormField field={field} />
-                <div className="flex justify-end mt-2 space-x-2">
-                  <button 
-                    type="button" 
-                    className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
-                    onClick={() => handleEditField(index)}
-                  >
-                    Edit
-                  </button>
-                  <button 
-                    type="button" 
-                    className="px-2 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200"
-                    onClick={() => {
-                      setFields(fields.filter((_, i) => i !== index));
-                    }}
-                  >
-                    Remove
-                  </button>
-                </div>
-              </div>
-            ))}
-          </form>
+        <div className="p-2">
+          <DraftNotification 
+            lastEdited={noticeLastEdited} 
+            onDismiss={dismissDraftNotice} 
+          />
         </div>
       )}
+
+      <div className="flex-1 p-4 md:p-6 overflow-y-auto border-dashed border border-gray-200">
+        {fields.length === 0 ? (
+          <div className="flex items-center justify-center h-full">
+            <p className="text-gray-400 text-lg">Drag and drop form elements here</p>
+          </div>
+        ) : (
+          <div className="space-y-4 max-w-2xl mx-auto">
+            <h2 className="text-xl font-semibold pb-2 border-b">Form Preview</h2>
+            <form className="space-y-4">
+              {fields.map((field, index) => (
+                <div 
+                  key={field.id} 
+                  className={`p-3 md:p-4 border rounded-md bg-gray-50 hover:shadow-md transition-shadow cursor-move
+                    ${draggedItem === index ? 'opacity-50 border-dashed' : ''}
+                    ${dragOverItem === index ? 'border-blue-500 bg-blue-50' : ''}`}
+                  draggable="true"
+                  onDragStart={() => handleDragStart(index)}
+                  onDragEnter={() => handleDragEnter(index)}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDragEnd={handleDragEnd}
+                >
+                  <div className="flex items-center mb-2 text-gray-500">
+                    <span className="mr-2">☰</span>
+                    <span className="text-sm">Drag to reorder</span>
+                  </div>
+                  <FormField field={field} />
+                  <div className="flex justify-end mt-2 space-x-2">
+                    <button 
+                      type="button" 
+                      className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
+                      onClick={() => handleEditField(index)}
+                    >
+                      Edit
+                    </button>
+                    <button 
+                      type="button" 
+                      className="px-2 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200"
+                      onClick={() => {
+                        setFields(fields.filter((_, i) => i !== index));
+                      }}
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </form>
+          </div>
+        )}
+      </div>
 
       {editingField !== null && (
         <FieldConfig 

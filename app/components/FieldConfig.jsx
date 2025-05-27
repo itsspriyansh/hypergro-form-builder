@@ -139,11 +139,20 @@ export default function FieldConfig({ field, onSave, onCancel }) {
   const supportsPatternValidation = field.type === 'text';
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
-        <h3 className="text-lg font-semibold mb-4">Configure {field.type} Field</h3>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+        <div className="sticky top-0 bg-white p-4 border-b border-gray-200 flex justify-between items-center">
+          <h3 className="text-lg font-semibold">Configure {field.type} Field</h3>
+          <button 
+            type="button" 
+            className="text-gray-500 hover:text-gray-700"
+            onClick={onCancel}
+          >
+            ✕
+          </button>
+        </div>
         
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className="p-4">
           <div className="space-y-4">
 
             <div>
@@ -199,7 +208,7 @@ export default function FieldConfig({ field, onSave, onCancel }) {
               </div>
               
               {supportsLengthValidation && (
-                <div className="flex space-x-4 mb-4">
+                <div className="flex flex-col sm:flex-row sm:space-x-4 space-y-3 sm:space-y-0 mb-4">
                   <div className="flex-1">
                     <label className="block text-sm font-medium mb-1">Min Length</label>
                     <input
@@ -273,7 +282,7 @@ export default function FieldConfig({ field, onSave, onCancel }) {
                   {config.patternType !== 'none' && config.patternType !== 'custom' && (
                     <div className="p-3 bg-gray-50 rounded text-sm">
                       <p className="font-medium mb-1">Pattern:</p>
-                      <code className="text-xs bg-gray-100 p-1 rounded">{config.pattern}</code>
+                      <code className="text-xs bg-gray-100 p-1 rounded break-all">{config.pattern}</code>
                       <p className="font-medium mt-2 mb-1">Description:</p>
                       <p className="text-gray-600">{config.patternDescription}</p>
                     </div>
@@ -318,11 +327,11 @@ export default function FieldConfig({ field, onSave, onCancel }) {
             )}
           </div>
           
-          <div className="flex justify-end space-x-2 mt-6">
+          <div className="flex justify-end space-x-2 mt-6 pt-4 border-t border-gray-200">
             <button
               type="button"
               onClick={onCancel}
-              className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
+              className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 sm:inline-block hidden"
             >
               Cancel
             </button>
