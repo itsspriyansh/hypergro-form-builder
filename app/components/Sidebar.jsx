@@ -21,6 +21,7 @@ export default function Sidebar({
   onReset,
   onSave,
   isEditing,
+  onAddStep
 }) {
   const [searchParams] = useSearchParams();
   const formId = searchParams.get('formId');
@@ -126,6 +127,27 @@ export default function Sidebar({
           <span className="mr-2">🗑️</span>
           Reset Form
         </button>
+
+        {onAddStep && (
+          <button
+            onClick={onAddStep}
+            className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded flex items-center justify-center mt-4"
+            title="Add another page to your multi-step form"
+          >
+            <span className="mr-2">➕</span>
+            Add Form Step/Page
+          </button>
+        )}
+      </div>
+      
+      <div className="mt-6 pt-4 border-t border-gray-300">
+        <p className="text-sm text-gray-600 mb-2">Multistep Form Instructions:</p>
+        <ol className="text-xs text-gray-600 list-decimal pl-4 space-y-1">
+          <li>Add fields to your form</li>
+          <li>Edit each field to assign it to a step</li>
+          <li>Click 'Preview Form' to test</li>
+          <li>Save when you're done</li>
+        </ol>
       </div>
     </div>
   );

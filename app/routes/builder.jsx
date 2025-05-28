@@ -13,7 +13,9 @@ export default function FormBuilder() {
     isEditing,
     showDraftNotice,
     lastEdited,
-    dismissDraftNotice
+    dismissDraftNotice,
+    maxSteps,
+    addStep
   } = useFormCanvas();
   
   return (
@@ -25,6 +27,7 @@ export default function FormBuilder() {
         onReset={resetForm}
         onSave={saveForm}
         isEditing={isEditing}
+        onAddStep={addStep}
       />
       <FormCanvas 
         fields={fields}
@@ -32,6 +35,7 @@ export default function FormBuilder() {
         showDraftNotice={showDraftNotice}
         lastEdited={lastEdited}
         dismissDraftNotice={dismissDraftNotice}
+        maxSteps={maxSteps}
       />
     </div>
   );

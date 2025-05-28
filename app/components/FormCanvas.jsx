@@ -43,6 +43,39 @@ function DraftNotification({ lastEdited, onDismiss }) {
   );
 }
 
+
+function StepProgressBar({ currentStep, totalSteps, onStepClick }) {
+  return (
+    <div className="mb-6">
+      <div className="flex justify-between w-full mb-2">
+        {Array.from({ length: totalSteps }, (_, i) => i + 1).map((step) => (
+          <div 
+            key={step} 
+            className="flex flex-col items-center cursor-pointer"
+            onClick={() => onStepClick(step)}
+          >
+            <div 
+              className={`w-8 h-8 flex items-center justify-center rounded-full 
+                ${step < currentStep ? 'bg-green-500 text-white' : 
+                 step === currentStep ? 'bg-blue-500 text-white' : 
+                 'bg-gray-200 text-gray-500'}`}
+            >
+              {step}
+            </div>
+            <span className="text-xs mt-1">Step {step}</span>
+          </div>
+        ))}
+      </div>
+      <div className="w-full bg-gray-200 h-2 rounded-full">
+        <div 
+          className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+          style={{ width: `${((currentStep - 1) / (totalSteps - 1)) * 100}%` }}
+        ></div>
+      </div>
+    </div>
+  );
+}
+
 export function useFormCanvas() {
   const [fields, setFields] = useState([]);
   const [formName, setFormName] = useState('');
@@ -50,6 +83,7 @@ export function useFormCanvas() {
   const formId = searchParams.get('formId');
   const [showDraftNotice, setShowDraftNotice] = useState(false);
   const [lastEdited, setLastEdited] = useState(null);
+  const [maxSteps, setMaxSteps] = useState(3); // Default to 3 steps
 
   useEffect(() => {
     if (formId) {
@@ -62,6 +96,12 @@ export function useFormCanvas() {
           if (targetForm) {
             setFields(targetForm.fields);
             setFormName(targetForm.name || 'Untitled Form');
+            
+
+            if (targetForm.fields && targetForm.fields.length > 0) {
+              const highestStep = Math.max(...targetForm.fields.map(f => f.step || 1));
+              setMaxSteps(Math.max(highestStep, 1));
+            }
 
             saveDraftForm(targetForm.name || 'Untitled Form', targetForm.fields, formId);
             return;
@@ -78,6 +118,12 @@ export function useFormCanvas() {
         const { name, fields: draftFields, formId: draftId, lastEdited } = JSON.parse(draftForm);
         setFields(draftFields || []);
         setFormName(name || 'Untitled Form');
+
+
+        if (draftFields && draftFields.length > 0) {
+          const highestStep = Math.max(...draftFields.map(f => f.step || 1));
+          setMaxSteps(Math.max(highestStep, 1));
+        }
 
         if (lastEdited) {
           setLastEdited(lastEdited);
@@ -96,6 +142,11 @@ export function useFormCanvas() {
   }, [formId]);
 
   useEffect(() => {
+    if (fields.length > 0) {
+      const highestStep = Math.max(...fields.map(f => f.step || 1), 1);
+      setMaxSteps(highestStep);
+    }
+
     if (fields.length > 0 || (formName && formName !== 'Untitled Form')) {
       saveDraftForm(formName, fields, formId);
     }
@@ -118,6 +169,7 @@ export function useFormCanvas() {
   const resetForm = () => {
     setFields([]);
     setFormName('Untitled Form');
+    setMaxSteps(3);
     localStorage.removeItem(DRAFT_FORM_KEY);
     setShowDraftNotice(false);
   };
@@ -131,6 +183,11 @@ export function useFormCanvas() {
   const dismissDraftNotice = () => {
     setShowDraftNotice(false);
   };
+
+  const addStep = () => {
+    setMaxSteps(prev => prev + 1);
+    alert(`New step added! You now have ${maxSteps + 1} steps available.\n\nEdit your fields to assign them to step ${maxSteps + 1}.`);
+  };
   
   return {
     fields,
@@ -142,7 +199,9 @@ export function useFormCanvas() {
     isEditing: !!formId,
     showDraftNotice,
     lastEdited,
-    dismissDraftNotice
+    dismissDraftNotice,
+    maxSteps,
+    addStep
   };
 }
 
@@ -151,7 +210,8 @@ export default function FormCanvas({
   setFields,
   showDraftNotice: externalShowDraftNotice,
   lastEdited: externalLastEdited,
-  dismissDraftNotice: externalDismissNotice
+  dismissDraftNotice: externalDismissNotice,
+  maxSteps = 3
 }) {
   const [draggedItem, setDraggedItem] = useState(null);
   const [dragOverItem, setDragOverItem] = useState(null);
@@ -159,6 +219,8 @@ export default function FormCanvas({
   const [searchParams] = useSearchParams();
   const [showDraftNotice, setShowDraftNotice] = useState(false);
   const [lastEdited, setLastEdited] = useState(null);
+  const [currentStep, setCurrentStep] = useState(1);
+  const [isPreviewMode, setIsPreviewMode] = useState(false);
 
   const shouldShowNotice = externalShowDraftNotice !== undefined ? externalShowDraftNotice : showDraftNotice;
   const noticeLastEdited = externalLastEdited !== undefined ? externalLastEdited : lastEdited;
@@ -197,7 +259,8 @@ export default function FormCanvas({
         required: false,
         helpText: '',
         minLength: '',
-        maxLength: ''
+        maxLength: '',
+        step: currentStep
       };
 
       if (fieldType === 'dropdown' || fieldType === 'radio') {
@@ -254,6 +317,36 @@ export default function FormCanvas({
     }
   };
 
+  const handleStepChange = (step) => {
+    setCurrentStep(step);
+  };
+
+  const nextStep = () => {
+    if (currentStep < maxSteps) {
+      setCurrentStep(currentStep + 1);
+    }
+  };
+
+  const prevStep = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
+
+  const togglePreviewMode = () => {
+    setIsPreviewMode(!isPreviewMode);
+    if (!isPreviewMode) {
+      setCurrentStep(1);
+    }
+  };
+
+
+  const currentStepFields = isPreviewMode 
+    ? fields.filter(field => field.step === currentStep)
+    : fields;
+
+  const totalSteps = Math.max(...fields.map(field => field.step || 1), 1);
+
   return (
     <div 
       className="flex-1 flex flex-col overflow-hidden"
@@ -270,54 +363,134 @@ export default function FormCanvas({
       )}
 
       <div className="flex-1 p-4 md:p-6 overflow-y-auto border-dashed border border-gray-200">
-        {fields.length === 0 ? (
-          <div className="flex items-center justify-center h-full">
-            <p className="text-gray-400 text-lg">Drag and drop form elements here</p>
+        <div className="max-w-2xl mx-auto">
+          <div className="mb-4 flex justify-between items-center">
+            <h2 className="text-xl font-semibold">
+              {isPreviewMode ? 'Form Preview - Step ' + currentStep + ' of ' + totalSteps : 'Form Builder'}
+              {!isPreviewMode && (
+                <span className="text-sm ml-2 font-normal text-gray-500">
+                  {maxSteps} step{maxSteps !== 1 ? 's' : ''} available
+                </span>
+              )}
+            </h2>
+            <button
+              onClick={togglePreviewMode}
+              className={`px-3 py-1 rounded ${
+                isPreviewMode 
+                  ? 'bg-gray-200 text-gray-700 hover:bg-gray-300' 
+                  : 'bg-blue-500 text-white hover:bg-blue-600'
+              }`}
+            >
+              {isPreviewMode ? 'Back to Editor' : 'Preview Form'}
+            </button>
           </div>
-        ) : (
-          <div className="space-y-4 max-w-2xl mx-auto">
-            <h2 className="text-xl font-semibold pb-2 border-b">Form Preview</h2>
-            <form className="space-y-4">
-              {fields.map((field, index) => (
-                <div 
-                  key={field.id} 
-                  className={`p-3 md:p-4 border rounded-md bg-gray-50 hover:shadow-md transition-shadow cursor-move
-                    ${draggedItem === index ? 'opacity-50 border-dashed' : ''}
-                    ${dragOverItem === index ? 'border-blue-500 bg-blue-50' : ''}`}
-                  draggable="true"
-                  onDragStart={() => handleDragStart(index)}
-                  onDragEnter={() => handleDragEnter(index)}
-                  onDragOver={(e) => e.preventDefault()}
-                  onDragEnd={handleDragEnd}
-                >
-                  <div className="flex items-center mb-2 text-gray-500">
-                    <span className="mr-2">☰</span>
-                    <span className="text-sm">Drag to reorder</span>
-                  </div>
-                  <FormField field={field} />
-                  <div className="flex justify-end mt-2 space-x-2">
-                    <button 
-                      type="button" 
-                      className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
-                      onClick={() => handleEditField(index)}
+
+          {!isPreviewMode && maxSteps > 1 && (
+            <div className="mb-4 p-3 bg-blue-50 border-l-4 border-blue-500 rounded">
+              <p className="text-sm">
+                <strong>Multistep Form Enabled:</strong> You have {maxSteps} steps available. 
+                Edit each field to assign it to a specific step, then click "Preview Form" to see how your multi-page form works.
+              </p>
+            </div>
+          )}
+
+          {isPreviewMode && totalSteps > 1 && (
+            <StepProgressBar 
+              currentStep={currentStep}
+              totalSteps={totalSteps}
+              onStepClick={handleStepChange}
+            />
+          )}
+
+          {currentStepFields.length === 0 ? (
+            <div className="flex items-center justify-center h-64 border-2 border-dashed border-gray-300 rounded-lg">
+              <p className="text-gray-400 text-lg">
+                {isPreviewMode 
+                  ? `No fields found for step ${currentStep}` 
+                  : 'Drag and drop form elements here'}
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <form className="space-y-4">
+                {currentStepFields.map((field, index) => (
+                  isPreviewMode ? (
+                    <FormField key={field.id} field={field} />
+                  ) : (
+                    <div 
+                      key={field.id} 
+                      className={`p-3 md:p-4 border rounded-md bg-gray-50 hover:shadow-md transition-shadow cursor-move
+                        ${draggedItem === index ? 'opacity-50 border-dashed' : ''}
+                        ${dragOverItem === index ? 'border-blue-500 bg-blue-50' : ''}`}
+                      draggable="true"
+                      onDragStart={() => handleDragStart(index)}
+                      onDragEnter={() => handleDragEnter(index)}
+                      onDragOver={(e) => e.preventDefault()}
+                      onDragEnd={handleDragEnd}
                     >
-                      Edit
-                    </button>
-                    <button 
-                      type="button" 
-                      className="px-2 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200"
-                      onClick={() => {
-                        setFields(fields.filter((_, i) => i !== index));
-                      }}
-                    >
-                      Remove
-                    </button>
-                  </div>
+                      <div className="flex items-center mb-2 text-gray-500">
+                        <span className="mr-2">☰</span>
+                        <span className="text-sm">Drag to reorder</span>
+                        {field.step && (
+                          <span className="ml-auto bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full font-bold">
+                            Step {field.step}
+                          </span>
+                        )}
+                      </div>
+                      <FormField field={field} showStepIndicator={false} />
+                      <div className="flex justify-end mt-2 space-x-2">
+                        <button 
+                          type="button" 
+                          className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
+                          onClick={() => handleEditField(fields.indexOf(field))}
+                        >
+                          Edit
+                        </button>
+                        <button 
+                          type="button" 
+                          className="px-2 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200"
+                          onClick={() => {
+                            setFields(fields.filter(f => f.id !== field.id));
+                          }}
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    </div>
+                  )
+                ))}
+              </form>
+
+              {isPreviewMode && totalSteps > 1 && (
+                <div className="flex justify-between mt-6 pt-4 border-t border-gray-200">
+                  <button
+                    onClick={prevStep}
+                    disabled={currentStep === 1}
+                    className={`px-4 py-2 rounded ${
+                      currentStep === 1 
+                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
+                      : 'bg-gray-500 text-white hover:bg-gray-600'
+                    }`}
+                  >
+                    Previous
+                  </button>
+                  
+                  <button
+                    onClick={nextStep}
+                    disabled={currentStep === totalSteps}
+                    className={`px-4 py-2 rounded ${
+                      currentStep === totalSteps 
+                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
+                      : 'bg-blue-500 text-white hover:bg-blue-600'
+                    }`}
+                  >
+                    Next
+                  </button>
                 </div>
-              ))}
-            </form>
-          </div>
-        )}
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
       {editingField !== null && (
@@ -325,6 +498,7 @@ export default function FormCanvas({
           field={fields[editingField]} 
           onSave={handleSaveFieldConfig}
           onCancel={handleCancelFieldConfig}
+          maxSteps={maxSteps}
         />
       )}
     </div>

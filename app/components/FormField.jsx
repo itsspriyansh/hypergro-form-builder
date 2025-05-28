@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-export default function FormField({ field }) {
+export default function FormField({ field, showStepIndicator = false }) {
   const { 
     type, 
     label, 
@@ -11,7 +11,8 @@ export default function FormField({ field }) {
     minLength, 
     maxLength,
     pattern,
-    patternDescription
+    patternDescription,
+    step
   } = field;
   
   const [value, setValue] = useState('');
@@ -214,10 +215,17 @@ export default function FormField({ field }) {
 
   return (
     <div className="mb-4">
-      <label className="block mb-2 font-medium">
-        {label}
-        {required && <span className="text-red-500 ml-1">*</span>}
-      </label>
+      <div className="flex justify-between items-center mb-2">
+        <label className="font-medium">
+          {label}
+          {required && <span className="text-red-500 ml-1">*</span>}
+        </label>
+        {showStepIndicator && step && (
+          <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
+            Step {step}
+          </span>
+        )}
+      </div>
       {renderField()}
       {error && touched && (
         <p className="mt-1 text-sm text-red-500">{error}</p>

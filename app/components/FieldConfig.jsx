@@ -15,7 +15,7 @@ const VALIDATION_PATTERNS = {
   }
 };
 
-export default function FieldConfig({ field, onSave, onCancel }) {
+export default function FieldConfig({ field, onSave, onCancel, maxSteps = 5 }) {
   const [config, setConfig] = useState({
     label: '',
     placeholder: '',
@@ -26,7 +26,8 @@ export default function FieldConfig({ field, onSave, onCancel }) {
     maxLength: '',
     patternType: 'none',
     pattern: '',
-    patternDescription: ''
+    patternDescription: '',
+    step: 1
   });
 
   useEffect(() => {
@@ -56,14 +57,15 @@ export default function FieldConfig({ field, onSave, onCancel }) {
       maxLength: field.maxLength || '',
       patternType,
       pattern,
-      patternDescription
+      patternDescription,
+      step: field.step || 1
     });
   }, [field]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
 
-    if (name === 'minLength' || name === 'maxLength') {
+    if (name === 'minLength' || name === 'maxLength' || name === 'step') {
       const numValue = value === '' ? '' : parseInt(value, 10);
       setConfig({
         ...config,
@@ -154,7 +156,6 @@ export default function FieldConfig({ field, onSave, onCancel }) {
         
         <form onSubmit={handleSubmit} className="p-4">
           <div className="space-y-4">
-
             <div>
               <label className="block text-sm font-medium mb-1">Field Label</label>
               <input
@@ -165,6 +166,26 @@ export default function FieldConfig({ field, onSave, onCancel }) {
                 className="w-full px-3 py-2 border rounded-md"
                 required
               />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1">Form Step/Page</label>
+              <div className="flex items-center">
+                <select
+                  name="step"
+                  value={config.step}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border rounded-md bg-blue-50"
+                >
+                  {Array.from({ length: maxSteps }, (_, i) => i + 1).map(num => (
+                    <option key={num} value={num}>Step {num}</option>
+                  ))}
+                </select>
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                <strong>This is important!</strong> Assign this field to a specific step/page in your multi-step form.
+                Fields with the same step number will appear on the same page.
+              </p>
             </div>
 
             {field.type !== 'checkbox' && field.type !== 'radio' && (
