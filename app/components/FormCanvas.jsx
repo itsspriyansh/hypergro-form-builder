@@ -261,7 +261,30 @@ export default function FormCanvas({
   const handleFieldDrop = (e, overFieldId, stepNumber) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
+    const fieldType = e.dataTransfer.getData('fieldType');
+    if (fieldType) {
+      const newField = {
+        id: `field-${Date.now()}`,
+        type: fieldType,
+        label: `New ${fieldType} field`,
+        placeholder: `Enter ${fieldType}...`,
+        required: false,
+        helpText: '',
+        minLength: '',
+        maxLength: '',
+        step: stepNumber
+      };
+
+      if (fieldType === 'dropdown' || fieldType === 'radio') {
+        newField.options = ['Option 1', 'Option 2', 'Option 3'];
+      }
+      
+      setFields([...fields, newField]);
+      resetDragState();
+      return;
+    }
+
     if (!draggedField) return;
 
     const newFields = [...fields];
