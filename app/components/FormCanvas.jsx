@@ -254,8 +254,12 @@ export default function FormCanvas({
 
   const handleFieldDragOver = (e, fieldId) => {
     e.preventDefault();
-    e.stopPropagation();
-    setDragOverFieldId(fieldId);
+    const isFromSidebar = e.dataTransfer.types.includes('text/plain');
+
+    if (!isFromSidebar && draggedField) {
+      e.stopPropagation();
+      setDragOverFieldId(fieldId);
+    }
   };
 
   const handleFieldDrop = (e, overFieldId, stepNumber) => {
@@ -309,7 +313,8 @@ export default function FormCanvas({
 
   const handleSectionDragOver = (e, stepNumber) => {
     e.preventDefault();
-    if (!dragOverFieldId) {
+    const isFromSidebar = e.dataTransfer.types.includes('text/plain');
+    if (isFromSidebar || !dragOverFieldId) {
       setDragOverStep(stepNumber);
     }
   };

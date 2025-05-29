@@ -28,6 +28,7 @@ export default function Sidebar({
 
   const onDragStart = (event, fieldType) => {
     event.dataTransfer.setData("fieldType", fieldType);
+    event.dataTransfer.setData("text/plain", fieldType);
     event.dataTransfer.effectAllowed = "copy";
   };
 
