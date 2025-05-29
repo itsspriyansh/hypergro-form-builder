@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useSearchParams } from "@remix-run/react";
 
 const DRAFT_FORM_KEY = 'draftForm';
@@ -14,6 +14,57 @@ const FIELD_TYPES = [
   { id: "file", label: "File Upload", icon: "📎" },
 ];
 
+function ShareLinkDialog({ formId, onClose }) {
+  const [copied, setCopied] = useState(false);
+  const shareableLink = `${window.location.origin}/${formId}`;
+  
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(shareableLink)
+      .then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      })
+      .catch(err => {
+        console.error('Failed to copy: ', err);
+      });
+  };
+  
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-6 w-full max-w-md">
+        <h3 className="text-lg font-semibold mb-4">Share Your Form</h3>
+        <p className="text-sm text-gray-600 mb-3">
+          Use this link to share your form with others. They can access and submit the form without needing to log in.
+        </p>
+        
+        <div className="flex mb-4">
+          <input
+            type="text"
+            value={shareableLink}
+            readOnly
+            className="flex-1 px-3 py-2 border rounded-l-md bg-gray-50"
+          />
+          <button
+            onClick={copyToClipboard}
+            className={`px-4 py-2 rounded-r-md ${copied ? 'bg-green-500' : 'bg-blue-500'} text-white`}
+          >
+            {copied ? 'Copied!' : 'Copy'}
+          </button>
+        </div>
+        
+        <div className="flex justify-end mt-4">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function Sidebar({
   fields,
   formName,
@@ -25,6 +76,8 @@ export default function Sidebar({
 }) {
   const [searchParams] = useSearchParams();
   const formId = searchParams.get('formId');
+  const [showShareDialog, setShowShareDialog] = useState(false);
+  const [savedFormId, setSavedFormId] = useState(null);
 
   const onDragStart = (event, fieldType) => {
     event.dataTransfer.setData("fieldType", fieldType);
@@ -39,10 +92,13 @@ export default function Sidebar({
     }
 
     const formId = searchParams.get('formId') || `form-${Date.now()}`;
-    const currentDate = new Date().toISOString().split("T")[0]; // Format: YYYY-MM-DD
+    const currentDate = new Date().toISOString().split("T")[0];
+
+    const shareableId = `f${Math.random().toString(36).substring(2, 9)}`;
 
     const formData = {
       id: formId,
+      shareableId: shareableId,
       name: formName || 'Untitled Form',
       createdAt: currentDate,
       fields: fields,
@@ -61,6 +117,11 @@ export default function Sidebar({
     }
 
     if (isEditing) {
+      const existingForm = savedForms.find(form => form.id === formId);
+      if (existingForm && existingForm.shareableId) {
+        formData.shareableId = existingForm.shareableId;
+      }
+      
       savedForms = savedForms.map((form) =>
         form.id === formId ? formData : form
       );
@@ -69,11 +130,12 @@ export default function Sidebar({
     }
 
     localStorage.setItem(SAVED_FORMS_KEY, JSON.stringify(savedForms));
-
     localStorage.removeItem(DRAFT_FORM_KEY);
     
-    alert("Form saved successfully!");
+    setSavedFormId(formData.shareableId);
 
+    setShowShareDialog(true);
+    
     if (onSave) onSave(formData);
   };
 
@@ -150,6 +212,13 @@ export default function Sidebar({
           <li>Save when you're done</li>
         </ol>
       </div>
+      
+      {showShareDialog && savedFormId && (
+        <ShareLinkDialog 
+          formId={savedFormId} 
+          onClose={() => setShowShareDialog(false)}
+        />
+      )}
     </div>
   );
 }

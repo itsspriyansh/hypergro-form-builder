@@ -1,8 +1,61 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from '@remix-run/react';
 
+function ShareLinkDialog({ formId, onClose }) {
+  const [copied, setCopied] = useState(false);
+  const shareableLink = `${window.location.origin}/${formId}`;
+  
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(shareableLink)
+      .then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      })
+      .catch(err => {
+        console.error('Failed to copy: ', err);
+      });
+  };
+  
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-6 w-full max-w-md">
+        <h3 className="text-lg font-semibold mb-4">Share Your Form</h3>
+        <p className="text-sm text-gray-600 mb-3">
+          Use this link to share your form with others. They can access and submit the form without needing to log in.
+        </p>
+        
+        <div className="flex mb-4">
+          <input
+            type="text"
+            value={shareableLink}
+            readOnly
+            className="flex-1 px-3 py-2 border rounded-l-md bg-gray-50"
+          />
+          <button
+            onClick={copyToClipboard}
+            className={`px-4 py-2 rounded-r-md ${copied ? 'bg-green-500' : 'bg-blue-500'} text-white`}
+          >
+            {copied ? 'Copied!' : 'Copy'}
+          </button>
+        </div>
+        
+        <div className="flex justify-end mt-4">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function Forms() {
   const [savedForms, setSavedForms] = useState([]);
+  const [showShareDialog, setShowShareDialog] = useState(false);
+  const [selectedFormId, setSelectedFormId] = useState(null);
   
   useEffect(() => {
     try {
@@ -23,9 +76,19 @@ export default function Forms() {
     }
   };
 
+  const handleShareForm = (form) => {
+    const shareId = form.shareableId || form.id;
+    setSelectedFormId(shareId);
+    setShowShareDialog(true);
+  };
+
   const formatDate = (dateString) => {
     const options = { year: 'numeric', month: 'short', day: 'numeric' };
     return new Date(dateString).toLocaleDateString(undefined, options);
+  };
+
+  const getFormViewUrl = (form) => {
+    return `/${form.shareableId || form.id}`;
   };
 
   return (
@@ -53,7 +116,7 @@ export default function Forms() {
                 <tr key={form.id} className="hover:bg-gray-50">
                   <td className="p-3 border">{form.name}</td>
                   <td className="p-3 border">{formatDate(form.createdAt)}</td>
-                  <td className="p-3 border">{form.responses}</td>
+                  <td className="p-3 border">{form.responses || 0}</td>
                   <td className="p-3 border">
                     <div className="flex space-x-2">
                       <Link 
@@ -62,7 +125,18 @@ export default function Forms() {
                       >
                         Edit
                       </Link>
-                      <button className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200">
+                      <Link 
+                        to={getFormViewUrl(form)}
+                        className="px-2 py-1 text-xs bg-purple-100 text-purple-700 rounded hover:bg-purple-200"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        View
+                      </Link>
+                      <button 
+                        className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200"
+                        onClick={() => handleShareForm(form)}
+                      >
                         Share
                       </button>
                       <button 
@@ -88,6 +162,13 @@ export default function Forms() {
             Create Your First Form
           </Link>
         </div>
+      )}
+      
+      {showShareDialog && selectedFormId && (
+        <ShareLinkDialog 
+          formId={selectedFormId} 
+          onClose={() => setShowShareDialog(false)}
+        />
       )}
     </div>
   );

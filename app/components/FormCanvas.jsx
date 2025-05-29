@@ -96,7 +96,9 @@ export function useFormCanvas() {
             setFields(targetForm.fields);
             setFormName(targetForm.name || 'Untitled Form');
             
-            if (targetForm.fields && targetForm.fields.length > 0) {
+            if (targetForm.maxSteps) {
+              setMaxSteps(targetForm.maxSteps);
+            } else if (targetForm.fields && targetForm.fields.length > 0) {
               const highestStep = Math.max(...targetForm.fields.map(f => f.step || 1));
               setMaxSteps(Math.max(highestStep, 1));
             }
@@ -113,11 +115,13 @@ export function useFormCanvas() {
     try {
       const draftForm = localStorage.getItem(DRAFT_FORM_KEY);
       if (draftForm) {
-        const { name, fields: draftFields, formId: draftId, lastEdited } = JSON.parse(draftForm);
+        const { name, fields: draftFields, formId: draftId, lastEdited, maxSteps: draftMaxSteps } = JSON.parse(draftForm);
         setFields(draftFields || []);
         setFormName(name || 'Untitled Form');
 
-        if (draftFields && draftFields.length > 0) {
+        if (draftMaxSteps) {
+          setMaxSteps(draftMaxSteps);
+        } else if (draftFields && draftFields.length > 0) {
           const highestStep = Math.max(...draftFields.map(f => f.step || 1));
           setMaxSteps(Math.max(highestStep, 1));
         }
@@ -155,6 +159,7 @@ export function useFormCanvas() {
         name: name,
         fields: formFields,
         formId: id,
+        maxSteps: maxSteps,
         lastEdited: new Date().toISOString()
       };
       localStorage.setItem(DRAFT_FORM_KEY, JSON.stringify(draftData));
@@ -166,9 +171,13 @@ export function useFormCanvas() {
   const resetForm = () => {
     setFields([]);
     setFormName('Untitled Form');
-    setMaxSteps(3);
+    setMaxSteps(1);
     localStorage.removeItem(DRAFT_FORM_KEY);
     setShowDraftNotice(false);
+    
+    if (window.location.search.includes('formId=')) {
+      window.history.replaceState(null, '', '/builder');
+    }
   };
 
   const saveForm = (formData) => {

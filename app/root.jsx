@@ -20,6 +20,7 @@ export default function App() {
               <ul className="flex space-x-4">
                 <li><Link to="/builder" className="hover:underline">Builder</Link></li>
                 <li><Link to="/forms" className="hover:underline">My Forms</Link></li>
+                <li><Link to="/templates" className="hover:underline">Templates</Link></li>
               </ul>
             </nav>
           </div>
