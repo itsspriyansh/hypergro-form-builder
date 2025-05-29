@@ -166,21 +166,24 @@ export default function Sidebar({
           type="text"
           value={formName}
           onChange={(e) => setFormName(e.target.value)}
-          className="w-full px-3 py-2 border rounded-md"
+          className="w-full px-3 py-2 border rounded-md bg-white"
           placeholder="Enter form name"
         />
       </div>
       
-      <div className="space-y-4">
+      <div className="space-y-1 bg-white p-3 rounded-lg shadow-sm dark:shadow-inner mb-6">
+        <div className="text-sm text-gray-600 font-bold mb-2 pb-2">
+          Drag elements to the form
+        </div>
         {FIELD_TYPES.map((field) => (
           <div
             key={field.id}
-            className="p-3 cursor-move flex items-center border-b border-transparent hover:border-blue-500 transition-all duration-300"
+            className="p-2.5 cursor-move flex items-center border border-transparent hover:border-blue-500 dark:hover:border-blue-400 hover:bg-blue-100 rounded-md transition-all duration-200 group"
             draggable
             onDragStart={(e) => onDragStart(e, field.id)}
           >
-            <span className="mr-3 text-xl text-blue-600">{field.icon}</span>
-            <span className="text-gray-700">{field.label}</span>
+            <span className="mr-3 text-xl text-blue-600 dark:text-blue-400 group-hover:scale-110 transition-transform duration-200">{field.icon}</span>
+            <span className="">{field.label}</span>
           </div>
         ))}
       </div>
