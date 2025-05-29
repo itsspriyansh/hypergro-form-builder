@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { MdClose } from 'react-icons/md';
+import { MdClose, MdAdd } from 'react-icons/md';
 
 const VALIDATION_PATTERNS = {
   email: {
@@ -16,355 +16,264 @@ const VALIDATION_PATTERNS = {
   }
 };
 
-export default function FieldConfig({ field, onSave, onCancel, maxSteps = 5 }) {
-  const [config, setConfig] = useState({
-    label: '',
-    placeholder: '',
-    required: false,
-    helpText: '',
-    options: [],
-    minLength: '',
-    maxLength: '',
-    patternType: 'none',
-    pattern: '',
-    patternDescription: '',
-    step: 1
-  });
+export default function FieldConfig({ field, onSave, onCancel, maxSteps = 1 }) {
+  const [updatedField, setUpdatedField] = useState({ ...field });
+  const [options, setOptions] = useState(field.options || []);
+  const [newOption, setNewOption] = useState('');
 
-  useEffect(() => {
-    let patternType = 'none';
-    let pattern = '';
-    let patternDescription = '';
-    
-    if (field.pattern) {
-      if (field.pattern === VALIDATION_PATTERNS.email.pattern) {
-        patternType = 'email';
-      } else if (field.pattern === VALIDATION_PATTERNS.phone.pattern) {
-        patternType = 'phone';
-      } else {
-        patternType = 'custom';
-      }
-      pattern = field.pattern;
-      patternDescription = field.patternDescription || '';
-    }
-
-    setConfig({
-      label: field.label || '',
-      placeholder: field.placeholder || '',
-      required: field.required || false,
-      helpText: field.helpText || '',
-      options: field.options || ['Option 1', 'Option 2', 'Option 3'],
-      minLength: field.minLength || '',
-      maxLength: field.maxLength || '',
-      patternType,
-      pattern,
-      patternDescription,
-      step: field.step || 1
-    });
-  }, [field]);
-
-  const handleChange = (e) => {
+  const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
-
-    if (name === 'minLength' || name === 'maxLength' || name === 'step') {
-      const numValue = value === '' ? '' : parseInt(value, 10);
-      setConfig({
-        ...config,
-        [name]: numValue
-      });
+    
+    if (type === 'checkbox') {
+      setUpdatedField(prev => ({ ...prev, [name]: checked }));
     } else {
-      setConfig({
-        ...config,
-        [name]: type === 'checkbox' ? checked : value
-      });
+      setUpdatedField(prev => ({ ...prev, [name]: value }));
     }
   };
 
-  const handlePatternTypeChange = (e) => {
-    const patternType = e.target.value;
-    
-    if (patternType === 'none') {
-      setConfig({
-        ...config,
-        patternType,
-        pattern: '',
-        patternDescription: ''
-      });
-    } else if (patternType in VALIDATION_PATTERNS) {
-      setConfig({
-        ...config,
-        patternType,
-        pattern: VALIDATION_PATTERNS[patternType].pattern,
-        patternDescription: VALIDATION_PATTERNS[patternType].description
-      });
+  const handleAddOption = () => {
+    if (newOption.trim()) {
+      setOptions(prev => [...prev, newOption.trim()]);
+      setNewOption('');
     }
   };
 
-  const handleOptionChange = (index, value) => {
-    const newOptions = [...config.options];
-    newOptions[index] = value;
-    setConfig({ ...config, options: newOptions });
+  const handleRemoveOption = (index) => {
+    setOptions(prev => prev.filter((_, i) => i !== index));
   };
 
-  const addOption = () => {
-    setConfig({
-      ...config,
-      options: [...config.options, `Option ${config.options.length + 1}`]
-    });
-  };
-
-  const removeOption = (index) => {
-    const newOptions = config.options.filter((_, i) => i !== index);
-    setConfig({ ...config, options: newOptions });
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-
-    const fieldConfig = { ...field, ...config };
-
-    if (config.patternType === 'none') {
-      delete fieldConfig.pattern;
-      delete fieldConfig.patternDescription;
+  const handleSave = () => {
+    const fieldToSave = { ...updatedField };
+    if (fieldToSave.type === 'dropdown' || fieldToSave.type === 'radio') {
+      fieldToSave.options = options;
     }
-
-    if (config.patternType === 'email' && !fieldConfig.placeholder) {
-      fieldConfig.placeholder = 'example@domain.com';
-    } else if (config.patternType === 'phone' && !fieldConfig.placeholder) {
-      fieldConfig.placeholder = '+91 9876543210';
-    }
-    
-    onSave(fieldConfig);
+    onSave(fieldToSave);
   };
 
-  const supportsLengthValidation = ['text', 'textarea'].includes(field.type);
-
-  const supportsPatternValidation = field.type === 'text';
+  const inputClass = "w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:ring-opacity-50 transition-all duration-200";
+  const labelClass = "block text-sm font-medium text-gray-700 mb-1";
+  const buttonClass = "inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all duration-200";
+  const primaryButtonClass = `${buttonClass} text-white bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 focus:ring-blue-500 transform hover:scale-105`;
+  const secondaryButtonClass = `${buttonClass} text-gray-700 bg-white border-gray-300 hover:bg-gray-50 focus:ring-blue-500 transform hover:scale-105`;
+  const dangerButtonClass = `${buttonClass} text-white bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 focus:ring-red-500 transform hover:scale-105`;
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-50 p-4" style={{ backgroundColor: 'rgba(0, 0, 0, 0.70)' }}>
-      <div className="bg-white rounded-lg shadow-xl w-full px-6 py-2 max-w-md max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-white p-4 border-b border-gray-200 flex justify-between items-center">
-          <h3 className="text-lg font-semibold">Configure {field.type} Field</h3>
-          <button 
-            type="button" 
-            className="text-gray-500 hover:text-gray-700"
-            onClick={onCancel}
-          >
-            <MdClose />
-          </button>
+    <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 animate-fadeIn" style={{backgroundColor: "rgba(0, 0, 0, 0.5)"}}>
+      <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-auto transform transition-all duration-300 ease-out animate-scaleIn">
+        <div className="sticky top-0 bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4 rounded-t-xl">
+          <div className="flex justify-between items-center">
+            <h2 className="text-xl font-bold text-white">Configure Field</h2>
+            <button 
+              onClick={onCancel} 
+              className="text-white hover:text-blue-200 hover:bg-blue-800 rounded-full p-1 transition-all duration-200 transform hover:rotate-90"
+            >
+              <MdClose className="h-6 w-6" />
+            </button>
+          </div>
         </div>
         
-        <form onSubmit={handleSubmit} className="p-4">
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-1">Field Label</label>
-              <input
-                type="text"
-                name="label"
-                value={config.label}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border rounded-md"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-1">Form Step/Page</label>
-              <div className="flex items-center">
-                <select
-                  name="step"
-                  value={config.step}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border rounded-md bg-blue-50"
-                >
-                  {Array.from({ length: maxSteps }, (_, i) => i + 1).map(num => (
-                    <option key={num} value={num}>Step {num}</option>
-                  ))}
-                </select>
-              </div>
-              <p className="text-xs text-gray-500 mt-1">
-                <strong>This is important!</strong> Assign this field to a specific step/page in your multi-step form.
-                Fields with the same step number will appear on the same page.
-              </p>
-            </div>
-
-            {field.type !== 'checkbox' && field.type !== 'radio' && (
+        <div className="p-6">
+          <div className="space-y-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div>
-                <label className="block text-sm font-medium mb-1">Placeholder</label>
+                <label htmlFor="label" className={labelClass}>Field Label</label>
                 <input
                   type="text"
-                  name="placeholder"
-                  value={config.placeholder}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border rounded-md"
+                  id="label"
+                  name="label"
+                  value={updatedField.label}
+                  onChange={handleInputChange}
+                  className={inputClass}
                 />
               </div>
-            )}
-
+              
+              <div>
+                <label htmlFor="type" className={labelClass}>Field Type</label>
+                <select
+                  id="type"
+                  name="type"
+                  value={updatedField.type}
+                  onChange={handleInputChange}
+                  className={`${inputClass} appearance-none bg-no-repeat bg-right pr-10`}
+                  style={{ 
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
+                    backgroundSize: '1.5em 1.5em'
+                  }}
+                  disabled
+                >
+                  <option value="text">Text</option>
+                  <option value="textarea">Textarea</option>
+                  <option value="email">Email</option>
+                  <option value="number">Number</option>
+                  <option value="date">Date</option>
+                  <option value="dropdown">Dropdown</option>
+                  <option value="radio">Radio</option>
+                  <option value="checkbox">Checkbox</option>
+                </select>
+              </div>
+            </div>
+            
             <div>
-              <label className="block text-sm font-medium mb-1">Help Text</label>
+              <label htmlFor="placeholder" className={labelClass}>Placeholder Text</label>
               <input
                 type="text"
-                name="helpText"
-                value={config.helpText}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border rounded-md"
-                placeholder="Optional guidance for this field"
+                id="placeholder"
+                name="placeholder"
+                value={updatedField.placeholder}
+                onChange={handleInputChange}
+                className={inputClass}
               />
             </div>
-
-            <div className="pt-2 pb-1 border-t border-gray-200">
-              <h4 className="font-medium text-sm mb-2">Validation</h4>
-              
-              <div className="flex items-center mb-3">
-                <input
-                  type="checkbox"
-                  id="required"
-                  name="required"
-                  checked={config.required}
-                  onChange={handleChange}
-                  className="mr-2"
-                />
-                <label htmlFor="required" className="text-sm font-medium">Required Field</label>
-              </div>
-              
-              {supportsLengthValidation && (
-                <div className="flex flex-col sm:flex-row sm:space-x-4 space-y-3 sm:space-y-0 mb-4">
-                  <div className="flex-1">
-                    <label className="block text-sm font-medium mb-1">Min Length</label>
-                    <input
-                      type="number"
-                      name="minLength"
-                      value={config.minLength}
-                      onChange={handleChange}
-                      min="0"
-                      className="w-full px-3 py-2 border rounded-md"
-                      placeholder="Optional"
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <label className="block text-sm font-medium mb-1">Max Length</label>
-                    <input
-                      type="number"
-                      name="maxLength"
-                      value={config.maxLength}
-                      onChange={handleChange}
-                      min="0"
-                      className="w-full px-3 py-2 border rounded-md"
-                      placeholder="Optional"
-                    />
-                  </div>
-                </div>
-              )}
-              
-              {supportsPatternValidation && (
-                <div className="space-y-3">
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Format Validation</label>
-                    <select
-                      className="w-full px-3 py-2 border rounded-md"
-                      value={config.patternType}
-                      onChange={handlePatternTypeChange}
-                    >
-                      <option value="none">None</option>
-                      <option value="email">Email</option>
-                      <option value="phone">Phone Number</option>
-                      <option value="custom">Custom Pattern</option>
-                    </select>
-                  </div>
-                  
-                  {config.patternType === 'custom' && (
-                    <>
-                      <div>
-                        <label className="block text-sm font-medium mb-1">Custom Pattern (RegEx)</label>
-                        <input
-                          type="text"
-                          name="pattern"
-                          value={config.pattern}
-                          onChange={handleChange}
-                          className="w-full px-3 py-2 border rounded-md"
-                          placeholder="Regular expression"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-1">Pattern Description</label>
-                        <input
-                          type="text"
-                          name="patternDescription"
-                          value={config.patternDescription}
-                          onChange={handleChange}
-                          className="w-full px-3 py-2 border rounded-md"
-                          placeholder="Explanation of the pattern for users"
-                        />
-                      </div>
-                    </>
-                  )}
-                  
-                  {config.patternType !== 'none' && config.patternType !== 'custom' && (
-                    <div className="p-3 bg-gray-50 rounded text-sm">
-                      <p className="font-medium mb-1">Pattern:</p>
-                      <code className="text-xs bg-gray-100 p-1 rounded break-all">{config.pattern}</code>
-                      <p className="font-medium mt-2 mb-1">Description:</p>
-                      <p className="text-gray-600">{config.patternDescription}</p>
-                    </div>
-                  )}
-                </div>
-              )}
+            
+            <div>
+              <label htmlFor="helpText" className={labelClass}>Help Text</label>
+              <input
+                type="text"
+                id="helpText"
+                name="helpText"
+                value={updatedField.helpText}
+                onChange={handleInputChange}
+                className={inputClass}
+                placeholder="Additional information to help users fill out this field"
+              />
             </div>
-
-            {(field.type === 'dropdown' || field.type === 'radio') && (
-              <div>
-                <label className="block text-sm font-medium mb-2">Options</label>
-                <div className="space-y-2">
-                  {config.options.map((option, index) => (
-                    <div key={index} className="flex items-center">
+            
+            {(updatedField.type === 'text' || updatedField.type === 'textarea') && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div>
+                  <label htmlFor="minLength" className={labelClass}>Minimum Length</label>
+                  <input
+                    type="number"
+                    id="minLength"
+                    name="minLength"
+                    value={updatedField.minLength}
+                    onChange={handleInputChange}
+                    className={inputClass}
+                    min="0"
+                  />
+                </div>
+                
+                <div>
+                  <label htmlFor="maxLength" className={labelClass}>Maximum Length</label>
+                  <input
+                    type="number"
+                    id="maxLength"
+                    name="maxLength"
+                    value={updatedField.maxLength}
+                    onChange={handleInputChange}
+                    className={inputClass}
+                    min="0"
+                  />
+                </div>
+              </div>
+            )}
+            
+            {(updatedField.type === 'dropdown' || updatedField.type === 'radio') && (
+              <div className="space-y-3">
+                <label className={labelClass}>Options</label>
+                <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                  {options.map((option, index) => (
+                    <div key={index} className="flex items-center mb-2 group">
                       <input
                         type="text"
                         value={option}
-                        onChange={(e) => handleOptionChange(index, e.target.value)}
-                        className="flex-1 px-3 py-2 border rounded-md mr-2"
-                        required
+                        onChange={(e) => {
+                          const newOptions = [...options];
+                          newOptions[index] = e.target.value;
+                          setOptions(newOptions);
+                        }}
+                        className={`${inputClass} group-hover:border-blue-300 transition-all duration-200`}
                       />
                       <button
                         type="button"
-                        onClick={() => removeOption(index)}
-                        className="px-2 py-1 text-gray-500 rounded-full hover:bg-gray-100"
-                        disabled={config.options.length <= 1}
+                        onClick={() => handleRemoveOption(index)}
+                        className="ml-2 text-gray-400 hover:text-red-500 p-2 rounded-full hover:bg-red-50 transition-all duration-200"
                       >
-                        ✕
+                        <MdClose />
                       </button>
                     </div>
                   ))}
                   
-                  <button
-                    type="button"
-                    onClick={addOption}
-                    className="px-3 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 w-full"
-                  >
-                    + Add Option
-                  </button>
+                  <div className="flex mt-3">
+                    <input
+                      type="text"
+                      value={newOption}
+                      onChange={(e) => setNewOption(e.target.value)}
+                      placeholder="Add new option"
+                      className={inputClass}
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleAddOption();
+                        }
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={handleAddOption}
+                      className="ml-2 bg-blue-100 text-blue-600 hover:bg-blue-200 p-2 rounded-md transition-all duration-200 flex items-center"
+                    >
+                      <MdAdd className="mr-1" /> Add
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div className="flex items-start">
+                <input
+                  type="checkbox"
+                  id="required"
+                  name="required"
+                  checked={updatedField.required || false}
+                  onChange={handleInputChange}
+                  className="mt-1 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 transition-colors duration-200"
+                />
+                <label htmlFor="required" className="ml-2 block text-sm text-gray-700">
+                  Required Field
+                </label>
+              </div>
+              
+              <div>
+                <label htmlFor="step" className={labelClass}>Form Step</label>
+                <select
+                  id="step"
+                  name="step"
+                  value={updatedField.step || 1}
+                  onChange={handleInputChange}
+                  className={`${inputClass} appearance-none bg-no-repeat bg-right pr-10`}
+                  style={{ 
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
+                    backgroundSize: '1.5em 1.5em'
+                  }}
+                >
+                  {Array.from({ length: maxSteps }, (_, i) => i + 1).map((step) => (
+                    <option key={step} value={step}>Step {step}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
           </div>
+        </div>
+        
+        <div className="sticky bottom-0 bg-gray-50 px-6 py-4 rounded-b-xl border-t border-gray-200 flex justify-between">
+          <button 
+            type="button" 
+            onClick={onCancel} 
+            className={secondaryButtonClass}
+          >
+            Cancel
+          </button>
           
-          <div className="flex justify-end space-x-2 mt-6 pt-4 border-t border-gray-200">
-            <button
-              type="button"
-              onClick={onCancel}
-              className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 sm:inline-block hidden"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-            >
-              Save Changes
-            </button>
-          </div>
-        </form>
+          <button 
+            type="button" 
+            onClick={handleSave} 
+            className={primaryButtonClass}
+          >
+            Save Changes
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -15,7 +15,8 @@ export default function FormBuilder() {
     lastEdited,
     dismissDraftNotice,
     maxSteps,
-    addStep
+    addStep,
+    showSavedNotification
   } = useFormCanvas();
 
   useEffect(() => {
@@ -48,6 +49,7 @@ export default function FormBuilder() {
         lastEdited={lastEdited}
         dismissDraftNotice={dismissDraftNotice}
         maxSteps={maxSteps}
+        showSavedNotification={showSavedNotification}
       />
     </div>
   );

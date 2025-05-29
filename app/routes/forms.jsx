@@ -142,7 +142,7 @@ export default function Forms() {
                   disabled={selectedFormIds.length !== 1}
                   className={`p-2 rounded-full ${
                     selectedFormIds.length === 1 
-                      ? 'text-blue-600 hover:bg-blue-100' 
+                      ? 'hover:text-blue-600 hover:bg-blue-100' 
                       : 'text-gray-400 cursor-not-allowed'
                   }`}
                   title="Edit"
@@ -155,7 +155,7 @@ export default function Forms() {
                   disabled={selectedFormIds.length !== 1}
                   className={`p-2 rounded-full ${
                     selectedFormIds.length === 1 
-                      ? 'text-purple-600 hover:bg-purple-100' 
+                      ? 'hover:text-blue-600 hover:bg-blue-100' 
                       : 'text-gray-400 cursor-not-allowed'
                   }`}
                   title="View"
@@ -168,7 +168,7 @@ export default function Forms() {
                   disabled={selectedFormIds.length === 0}
                   className={`p-2 rounded-full ${
                     selectedFormIds.length > 0 
-                      ? 'text-red-600 hover:bg-red-100' 
+                      ? 'hover:text-red-600 hover:bg-red-100' 
                       : 'text-gray-400 cursor-not-allowed'
                   }`}
                   title="Delete"
@@ -234,6 +234,13 @@ export default function Forms() {
               className="text-blue-600 hover:underline font-light"
             >
               Create Your First Form
+            </Link>
+            <span className="mx-2 text-gray-500 mb-4">or</span>
+            <Link 
+              to="/templates" 
+              className="text-blue-600 hover:underline font-light"
+            >
+              Start with a template
             </Link>
           </div>
         )}

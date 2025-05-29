@@ -96,6 +96,11 @@ export default function FormField({
     return placeholder || `Enter ${type}...`;
   };
 
+  const baseInputClass = "w-full px-4 py-3 border rounded-lg shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 transition-all duration-200 bg-white";
+  const labelClass = "block text-sm font-medium text-gray-700 mb-1";
+  const helpTextClass = "mt-1 text-xs text-gray-500";
+  const requiredClass = "ml-1 text-red-500";
+
   const renderField = () => {
     const isDisabled = !editable && externalValue === undefined;
 
@@ -106,7 +111,7 @@ export default function FormField({
           <div>
             <input
               type={type}
-              className={`w-full px-3 py-2 border rounded-md ${
+              className={`${baseInputClass} hover:border-gray-400 ${
                 error ? "border-red-500" : ""
               } ${isDisabled ? "bg-gray-100" : ""}`}
               placeholder={getDefaultPlaceholder()}
@@ -141,7 +146,7 @@ export default function FormField({
         return (
           <div>
             <textarea
-              className={`w-full px-3 py-2 border rounded-md ${
+              className={`${baseInputClass} resize-y min-h-[100px] hover:border-gray-400 ${
                 error ? "border-red-500" : ""
               } ${isDisabled ? "bg-gray-100" : ""}`}
               rows="3"
@@ -175,16 +180,20 @@ export default function FormField({
       case "dropdown":
         return (
           <select
-            className={`w-full px-3 py-2 border rounded-md ${
+            className={`${baseInputClass} hover:border-gray-400 appearance-none bg-no-repeat bg-right pr-10 ${
               error ? "border-red-500" : ""
             } ${isDisabled ? "bg-gray-100" : ""}`}
+            style={{ 
+              backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
+              backgroundSize: '1.5em 1.5em'
+            }}
             value={value}
             onChange={handleChange}
             onBlur={handleBlur}
             required={required}
             disabled={isDisabled}
           >
-            <option value="">Select an option</option>
+            <option value="">{placeholder || 'Select an option...'}</option>
             {(options || ["Option 1", "Option 2", "Option 3"]).map(
               (option, index) => (
                 <option key={index} value={option}>
@@ -196,11 +205,11 @@ export default function FormField({
         );
       case "checkbox":
         return (
-          <div className="flex items-center">
+          <div className="flex items-center mt-2 transform transition-transform duration-200 hover:translate-x-1">
             <input
               type="checkbox"
               id={field.id}
-              className="mr-2"
+              className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer transition-all duration-150"
               checked={value === true}
               onChange={(e) => {
                 if (externalOnChange) {
@@ -214,21 +223,23 @@ export default function FormField({
               required={required}
               disabled={isDisabled}
             />
-            <label htmlFor={field.id}>{placeholder}</label>
+            <label htmlFor={field.id} className="ml-2 text-sm text-gray-700 cursor-pointer hover:text-blue-700 transition-colors duration-200">
+              {placeholder || 'Check this box'}
+            </label>
           </div>
         );
       case "radio":
         return (
-          <div className="space-y-2">
+          <div className="space-y-2 mt-2">
             {(options || ["Option 1", "Option 2", "Option 3"]).map(
               (option, index) => (
-                <div key={index} className="flex items-center">
+                <div key={index} className="flex items-center transition-transform duration-200 hover:translate-x-1">
                   <input
                     type="radio"
                     id={`${field.id}-${index}`}
                     name={field.id}
-                    className="mr-2"
                     value={option}
+                    className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500 cursor-pointer transition-all duration-150"
                     checked={value === option}
                     onChange={(e) => {
                       if (e.target.checked) {
@@ -244,7 +255,9 @@ export default function FormField({
                     required={required}
                     disabled={isDisabled}
                   />
-                  <label htmlFor={`${field.id}-${index}`}>{option}</label>
+                  <label htmlFor={`${field.id}-${index}`} className="ml-2 text-sm text-gray-700 cursor-pointer hover:text-blue-700 transition-colors duration-200">
+                    {option}
+                  </label>
                 </div>
               )
             )}
@@ -254,7 +267,7 @@ export default function FormField({
         return (
           <input
             type="date"
-            className={`w-full px-3 py-2 border rounded-md ${
+            className={`${baseInputClass} hover:border-gray-400 ${
               error ? "border-red-500" : ""
             } ${isDisabled ? "bg-gray-100" : ""}`}
             value={value}
@@ -295,23 +308,27 @@ export default function FormField({
   };
 
   return (
-    <div className="mb-4">
-      <div className="flex justify-between items-center mb-2">
-        <label className="font-medium">
-          {label}
-          {required && <span className="text-red-500 ml-1">*</span>}
+    <div className="relative group">
+      {showStepIndicator && step && (
+        <div className="absolute -left-2 -top-2 bg-blue-500 text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center shadow-md transform transition-transform duration-200 group-hover:scale-110 z-10">
+          {step}
+        </div>
+      )}
+      
+      <div className="form-field-container transition-all duration-300 hover:shadow-md p-2 rounded-lg">
+        <label className={`${labelClass} flex items-center`}>
+          <span className="transition-all duration-200 group-hover:text-blue-700">{label}</span>
+          {required && <span className={`${requiredClass} text-sm transition-opacity duration-200`}>*</span>}
         </label>
-        {showStepIndicator && step && (
-          <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
-            Step {step}
-          </span>
+        
+        {renderField()}
+        
+        {helpText && (
+          <p className={`${helpTextClass} italic transition-opacity duration-200 group-hover:opacity-100`}>{helpText}</p>
         )}
       </div>
-      {renderField()}
+      
       {error && touched && <p className="mt-1 text-sm text-red-500">{error}</p>}
-      {helpText && !error && (
-        <p className="mt-1 text-sm text-gray-500">{helpText}</p>
-      )}
     </div>
   );
 }

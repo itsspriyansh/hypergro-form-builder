@@ -1,0 +1,161 @@
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
+
+/* Custom Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+@keyframes slideUpIn {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes drawCircle {
+  0% {
+    stroke-dashoffset: 283; /* Full circumference of a circle with r=45 */
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes drawCheck {
+  0% {
+    stroke-dashoffset: 36; /* Length of the checkmark path */
+    opacity: 0;
+  }
+  50% {
+    opacity: 0;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  0% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* Custom Classes */
+@layer components {
+  .btn-primary {
+    @apply px-5 py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-300 font-medium;
+  }
+
+  .btn-secondary {
+    @apply px-5 py-2.5 bg-white text-gray-700 border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 hover:shadow-md transform hover:scale-105 transition-all duration-300 font-medium;
+  }
+
+  .card {
+    @apply bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300;
+  }
+
+  .input-field {
+    @apply w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:ring-opacity-50 transition-all duration-200;
+  }
+  
+  .shimmer {
+    @apply relative overflow-hidden bg-gray-100;
+  }
+  
+  .shimmer::after {
+    content: '';
+    @apply absolute top-0 left-0 w-full h-full;
+    background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.5) 50%, rgba(255,255,255,0) 100%);
+    animation: shimmer 2s infinite;
+  }
+}
+
+@layer utilities {
+  .animate-fadeIn {
+    animation: fadeIn 0.4s ease-out forwards;
+  }
+  
+  .animate-scaleIn {
+    animation: scaleIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  }
+  
+  .animate-slideUpIn {
+    animation: slideUpIn 0.4s ease-out forwards;
+  }
+  
+  .animate-pulse-custom {
+    animation: pulse 2s infinite;
+  }
+  
+  .animate-bounce-custom {
+    animation: bounce 1.5s ease infinite;
+  }
+  
+  .animate-spin-custom {
+    animation: spin 1.5s linear infinite;
+  }
+  
+  .animate-draw-circle {
+    animation: drawCircle 0.6s ease-in-out forwards;
+  }
+  
+  .animate-draw-check {
+    animation: drawCheck 0.8s ease-in-out forwards;
+    animation-delay: 0.3s;
+  }
+  
+  .animate-fade-out {
+    animation: fadeOut 2.5s ease-in-out forwards;
+  }
+  
+  /* Custom transforms */
+  .scale-98 {
+    transform: scale(0.98);
+  }
+  
+  .hover-lift {
+    @apply transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg;
+  }
+  
+  /* Glass effect */
+  .glassmorphism {
+    @apply bg-white bg-opacity-10 backdrop-filter backdrop-blur-md border border-white border-opacity-20 shadow-lg;
+  }
+}
