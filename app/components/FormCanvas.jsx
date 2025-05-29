@@ -853,16 +853,26 @@ export default function FormCanvas({
       <div className="flex-1 p-4 md:p-6 overflow-y-auto border-dashed border border-gray-200">
         <div className="max-w-4xl mx-auto">
           <div className="mb-4 flex justify-between items-center">
-            <h2 className="text-xl font-semibold transition-all duration-300">
-              {isPreviewMode
-                ? "Form Preview - Step " + currentStep + " of " + totalSteps
-                : "Form Builder"}
+            <div>
+              <h2 className="text-xl font-semibold transition-all duration-300">
+                {isPreviewMode
+                  ? "Form Preview - Step " + currentStep + " of " + totalSteps
+                  : "Form Builder"}
+                {!isPreviewMode && (
+                  <span className="text-sm ml-2 font-normal text-gray-500 transition-all duration-300">
+                    {maxSteps} step{maxSteps !== 1 ? "s" : ""} available
+                  </span>
+                )}
+              </h2>
               {!isPreviewMode && (
-                <span className="text-sm ml-2 font-normal text-gray-500 transition-all duration-300">
-                  {maxSteps} step{maxSteps !== 1 ? "s" : ""} available
-                </span>
+                <div className="flex items-center mt-1 text-gray-500 bg-gray-50 px-3 py-1.5 rounded-md border border-gray-200">
+                  <MdDragIndicator className="mr-2 text-gray-500" size={18} />
+                  <span className="text-sm">
+                    Drag fields to reorder or move between steps
+                  </span>
+                </div>
               )}
-            </h2>
+            </div>
             <button
               onClick={togglePreviewMode}
               className={`flex items-center transition-all duration-300 ease-in-out text-blue-600 hover:text-blue-800 ${
@@ -1037,7 +1047,7 @@ export default function FormCanvas({
                             {stepFields.map((field) => (
                               <div
                                 key={field.id}
-                                className={`p-4 border rounded-md transition-all duration-300 ease-in-out transform
+                                className={`p-4 pl-10 border rounded-md transition-all duration-300 ease-in-out transform
                                   ${
                                     draggedField?.id === field.id
                                       ? "opacity-50 border-dashed bg-gray-50 scale-98 rotate-1"
@@ -1084,18 +1094,15 @@ export default function FormCanvas({
                                   </button>
                                 </div>
 
-                                <div className="flex items-center mb-2 text-gray-500">
-                                  <span className="mr-2">
-                                    <MdDragIndicator className="transition-transform duration-200 hover:scale-110 text-gray-400" />
-                                  </span>
-                                  <span className="text-sm font-medium">
-                                    Drag to reorder or move between steps
-                                  </span>
+                                <div className="absolute top-2 left-2 bg-gray-100 hover:bg-gray-200 p-1 rounded transition-colors duration-200 text-gray-500" title="Drag to reorder">
+                                  <MdDragIndicator className="transition-transform duration-200 hover:scale-110 text-gray-500" size={20} />
                                 </div>
-                                <FormField
-                                  field={field}
-                                  showStepIndicator={false}
-                                />
+                                <div className="pt-1">
+                                  <FormField
+                                    field={field}
+                                    showStepIndicator={false}
+                                  />
+                                </div>
                               </div>
                             ))}
                           </div>
