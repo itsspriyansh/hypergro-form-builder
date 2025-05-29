@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import Sidebar from '../components/Sidebar';
 import FormCanvas, { useFormCanvas } from '../components/FormCanvas';
 
@@ -17,6 +17,18 @@ export default function FormBuilder() {
     maxSteps,
     addStep
   } = useFormCanvas();
+
+  useEffect(() => {
+    const handleAddStep = () => {
+      addStep();
+    };
+    
+    window.addEventListener('addStep', handleAddStep);
+    
+    return () => {
+      window.removeEventListener('addStep', handleAddStep);
+    };
+  }, [addStep]);
   
   return (
     <div className="flex flex-col md:flex-row h-full overflow-hidden">
