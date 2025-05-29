@@ -8,7 +8,7 @@ export default function App() {
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="data:image/x-icon;base64,AA" />
-        <title>Form Builder</title>
+        <title>Hypergro Form Builder</title>
         <Meta />
         <Links />
       </head>
@@ -18,7 +18,7 @@ export default function App() {
             <h1 className="text-xl font-bold">Hypergro Form Builder</h1>
             <nav>
               <ul className="flex space-x-4">
-                <li><Link to="/builder" className="hover:underline">Builder</Link></li>
+                <li><Link to="/create" className="hover:underline">Create Form</Link></li>
                 <li><Link to="/forms" className="hover:underline">My Forms</Link></li>
                 <li><Link to="/templates" className="hover:underline">Templates</Link></li>
               </ul>

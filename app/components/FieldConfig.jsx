@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { MdClose } from 'react-icons/md';
 
 const VALIDATION_PATTERNS = {
   email: {
@@ -141,8 +142,8 @@ export default function FieldConfig({ field, onSave, onCancel, maxSteps = 5 }) {
   const supportsPatternValidation = field.type === 'text';
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 flex items-center justify-center z-50 p-4" style={{ backgroundColor: 'rgba(0, 0, 0, 0.70)' }}>
+      <div className="bg-white rounded-lg shadow-xl w-full px-6 py-2 max-w-md max-h-[90vh] overflow-y-auto">
         <div className="sticky top-0 bg-white p-4 border-b border-gray-200 flex justify-between items-center">
           <h3 className="text-lg font-semibold">Configure {field.type} Field</h3>
           <button 
@@ -150,7 +151,7 @@ export default function FieldConfig({ field, onSave, onCancel, maxSteps = 5 }) {
             className="text-gray-500 hover:text-gray-700"
             onClick={onCancel}
           >
-            ✕
+            <MdClose />
           </button>
         </div>
         
@@ -328,7 +329,7 @@ export default function FieldConfig({ field, onSave, onCancel, maxSteps = 5 }) {
                       <button
                         type="button"
                         onClick={() => removeOption(index)}
-                        className="px-2 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200"
+                        className="px-2 py-1 text-gray-500 rounded-full hover:bg-gray-100"
                         disabled={config.options.length <= 1}
                       >
                         ✕

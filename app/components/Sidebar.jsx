@@ -1,17 +1,28 @@
 import React, { useState } from "react";
 import { useSearchParams } from "@remix-run/react";
+import { 
+  MdTextFields, 
+  MdSubject, 
+  MdArrowDropDown,
+  MdCheckBox, 
+  MdRadioButtonChecked,
+  MdCalendarMonth,
+  MdAttachFile,
+  MdSave,
+  MdDelete
+} from "react-icons/md";
 
 const DRAFT_FORM_KEY = 'draftForm';
 const SAVED_FORMS_KEY = 'savedForms';
 
 const FIELD_TYPES = [
-  { id: "text", label: "Text Field", icon: "📝" },
-  { id: "textarea", label: "Text Area", icon: "📄" },
-  { id: "dropdown", label: "Dropdown", icon: "▼" },
-  { id: "checkbox", label: "Checkbox", icon: "☑️" },
-  { id: "radio", label: "Radio Button", icon: "⚪" },
-  { id: "date", label: "Date Picker", icon: "📅" },
-  { id: "file", label: "File Upload", icon: "📎" },
+  { id: "text", label: "Text Field", icon: <MdTextFields /> },
+  { id: "textarea", label: "Text Area", icon: <MdSubject /> },
+  { id: "dropdown", label: "Dropdown", icon: <MdArrowDropDown /> },
+  { id: "checkbox", label: "Checkbox", icon: <MdCheckBox /> },
+  { id: "radio", label: "Radio Button", icon: <MdRadioButtonChecked /> },
+  { id: "date", label: "Date Picker", icon: <MdCalendarMonth /> },
+  { id: "file", label: "File Upload", icon: <MdAttachFile /> },
 ];
 
 function ShareLinkDialog({ formId, onClose }) {
@@ -160,16 +171,16 @@ export default function Sidebar({
         />
       </div>
       
-      <div className="space-y-2">
+      <div className="space-y-4">
         {FIELD_TYPES.map((field) => (
           <div
             key={field.id}
-            className="bg-white p-3 rounded border border-gray-300 cursor-move flex items-center shadow-sm hover:shadow-md transition-shadow"
+            className="p-3 cursor-move flex items-center border-b border-transparent hover:border-blue-500 transition-all duration-300"
             draggable
             onDragStart={(e) => onDragStart(e, field.id)}
           >
-            <span className="mr-2 text-xl">{field.icon}</span>
-            <span>{field.label}</span>
+            <span className="mr-3 text-xl text-blue-600">{field.icon}</span>
+            <span className="text-gray-700">{field.label}</span>
           </div>
         ))}
       </div>
@@ -177,40 +188,19 @@ export default function Sidebar({
       <div className="mt-8 space-y-3">
         <button
           onClick={handleSave}
-          className="w-full bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded flex items-center justify-center"
+          className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded flex items-center justify-center"
         >
-          <span className="mr-2">💾</span>
+          <span className="mr-2"><MdSave /></span>
           {isEditing ? "Update Form" : "Save Form"}
         </button>
         
         <button
           onClick={handleReset}
-          className="w-full bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded flex items-center justify-center"
+          className="w-full text-blue-500 border-blue-500 border-solid border-[1px] hover:bg-blue-500 hover:text-white transition-all duration-300 py-2 px-4 rounded flex items-center justify-center"
         >
-          <span className="mr-2">🗑️</span>
+          <span className="mr-2"><MdDelete /></span>
           Reset Form
         </button>
-
-        {onAddStep && (
-          <button
-            onClick={onAddStep}
-            className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded flex items-center justify-center mt-4"
-            title="Add another page to your multi-step form"
-          >
-            <span className="mr-2">➕</span>
-            Add Form Step/Page
-          </button>
-        )}
-      </div>
-      
-      <div className="mt-6 pt-4 border-t border-gray-300">
-        <p className="text-sm text-gray-600 mb-2">Multistep Form Instructions:</p>
-        <ol className="text-xs text-gray-600 list-decimal pl-4 space-y-1">
-          <li>Add fields to your form</li>
-          <li>Edit each field to assign it to a step</li>
-          <li>Click 'Preview Form' to test</li>
-          <li>Save when you're done</li>
-        </ol>
       </div>
       
       {showShareDialog && savedFormId && (
