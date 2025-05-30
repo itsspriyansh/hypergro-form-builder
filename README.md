@@ -2,7 +2,7 @@
 
 A powerful, intuitive drag-and-drop form builder that allows you to create multi-step forms with ease. Built with React and Remix for a seamless user experience.
 
-[IMAGE: Screenshot of the form builder interface]
+![image](https://github.com/user-attachments/assets/591f7767-437c-4e63-8e73-8457fa009277)
 
 ## Features
 
@@ -13,8 +13,6 @@ A powerful, intuitive drag-and-drop form builder that allows you to create multi
 - **Local Storage**: Forms and responses are saved in localStorage for easy access
 - **Shareable Forms**: Generate unique links to share your forms with others
 - **Form Validation**: Built-in validation for all field types
-
-[IMAGE: GIF showing drag and drop functionality]
 
 ## Technologies Used
 
@@ -56,6 +54,7 @@ The main form creation workspace where you can:
 - Save and share your form
 
 ### Form Templates (`/templates`)
+![image](https://github.com/user-attachments/assets/74a54874-5958-4830-a62e-985031f50b38)
 Browse a collection of pre-built form templates organized by category:
 - Business feedback forms
 - Contact forms
@@ -66,15 +65,18 @@ Browse a collection of pre-built form templates organized by category:
 Templates can be filtered by category and searched by name or description. Select any template to use it as a starting point for your own form.
 
 ### Forms Dashboard (`/forms`)
+![image](https://github.com/user-attachments/assets/de96d9db-0432-4497-b55f-fa4263ee3354)
 Manage all your created forms in one place:
 - View a list of all saved forms
 - See response counts for each form
 - Edit existing forms
 - Delete forms you no longer need
 - Copy shareable links for your forms
+- ![image](https://github.com/user-attachments/assets/b2c6296d-0eea-4211-ba6a-e43d45775f37)
 - Select multiple forms for batch operations
 
 ### Form View (`/:formId`)
+![image](https://github.com/user-attachments/assets/e205309b-dbfb-4d83-bed2-984468a5a04f)
 The public-facing view of your form that respondents will see:
 - Clean, user-friendly interface
 - Step-by-step navigation
@@ -172,9 +174,10 @@ When editing a field, you can configure various properties:
 - **Options**: For dropdowns and radio buttons, manage the available choices
 - **Step Assignment**: Assign the field to a specific form step
 
-[IMAGE: Screenshot of field configuration modal]
+![image](https://github.com/user-attachments/assets/94d002b6-622e-4b0a-8024-78d12e1c7cb1)
 
 ## Form Preview Mode
+![image](https://github.com/user-attachments/assets/7ede67c6-7675-4ad3-8f3e-9ed27258a2ac)
 
 Test your form as users will experience it:
 - Toggle between edit and preview modes
