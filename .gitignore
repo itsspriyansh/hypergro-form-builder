@@ -3,3 +3,4 @@
 /public/build
 requirements.txt
 .env
+.vercel

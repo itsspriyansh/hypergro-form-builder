@@ -1,0 +1,7 @@
+{
+  "buildCommand": "npx remix vite:build",
+  "devCommand": "node --inspect ./server.js",
+  "framework": "remix",
+  "outputDirectory": "build",
+  "regions": ["sfo1"]
+} 
