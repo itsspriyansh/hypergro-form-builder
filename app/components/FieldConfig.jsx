@@ -20,6 +20,38 @@ export default function FieldConfig({ field, onSave, onCancel, maxSteps = 1 }) {
   const [updatedField, setUpdatedField] = useState({ ...field });
   const [options, setOptions] = useState(field.options || []);
   const [newOption, setNewOption] = useState('');
+  const [validationType, setValidationType] = useState(
+    field.pattern ? (
+      Object.keys(VALIDATION_PATTERNS).find(key => 
+        VALIDATION_PATTERNS[key].pattern === field.pattern
+      ) || 'custom'
+    ) : 'none'
+  );
+  const [customPattern, setCustomPattern] = useState(
+    validationType === 'custom' ? field.pattern || '' : ''
+  );
+
+  useEffect(() => {
+    if (validationType === 'none') {
+      setUpdatedField(prev => ({
+        ...prev,
+        pattern: undefined,
+        patternDescription: undefined
+      }));
+    } else if (validationType === 'custom') {
+      setUpdatedField(prev => ({
+        ...prev,
+        pattern: customPattern,
+        patternDescription: customPattern ? 'Custom validation pattern' : undefined
+      }));
+    } else {
+      setUpdatedField(prev => ({
+        ...prev,
+        pattern: VALIDATION_PATTERNS[validationType].pattern,
+        patternDescription: VALIDATION_PATTERNS[validationType].description
+      }));
+    }
+  }, [validationType, customPattern]);
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -137,6 +169,50 @@ export default function FieldConfig({ field, onSave, onCancel, maxSteps = 1 }) {
                 placeholder="Additional information to help users fill out this field"
               />
             </div>
+            
+            {(updatedField.type === 'text') && (
+              <div>
+                <label htmlFor="validationType" className={labelClass}>Validation Type</label>
+                <select
+                  id="validationType"
+                  value={validationType}
+                  onChange={(e) => setValidationType(e.target.value)}
+                  className={`${inputClass} appearance-none bg-no-repeat bg-right pr-10`}
+                  style={{ 
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
+                    backgroundSize: '1.5em 1.5em'
+                  }}
+                >
+                  <option value="none">No Validation</option>
+                  <option value="email">Email</option>
+                  <option value="phone">Phone Number (India)</option>
+                  <option value="custom">Custom Pattern</option>
+                </select>
+                
+                {validationType === 'custom' && (
+                  <div className="mt-3">
+                    <label htmlFor="customPattern" className={labelClass}>Custom Regex Pattern</label>
+                    <input
+                      type="text"
+                      id="customPattern"
+                      value={customPattern}
+                      onChange={(e) => setCustomPattern(e.target.value)}
+                      className={inputClass}
+                      placeholder="Enter a valid regex pattern"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Enter a JavaScript-compatible regular expression without slashes
+                    </p>
+                  </div>
+                )}
+                
+                {validationType !== 'none' && validationType !== 'custom' && (
+                  <p className="text-sm text-gray-600 mt-2 p-3 bg-gray-50 rounded-md border border-gray-200">
+                    {VALIDATION_PATTERNS[validationType].description}
+                  </p>
+                )}
+              </div>
+            )}
             
             {(updatedField.type === 'text' || updatedField.type === 'textarea') && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
